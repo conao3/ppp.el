@@ -36,19 +36,19 @@
   :link '(url-link :tag "Github" "https://github.com/conao3/p.el"))
 
 (defun p-sexp (form)
-  "Output the pretty-printed representation of FORM."
+  "Output the pretty-printed representation of FORM suitable for objects."
   (progn
     (pp form)
     nil))
 
 (defmacro p-macroexpand (form)
-  "Output the pretty-printed `macroexpand-1' representation of FORM."
+  "Output the pretty-printed representation of FORM suitable for macro."
   `(progn
      (pp (macroexpand-1 ',form))
      nil))
 
 (defun p-list (form)
-  "Output the pretty-printed representation of FORM."
+  "Output the pretty-printed representation of FORM suitable for list."
   (progn
     (princ
      (with-temp-buffer

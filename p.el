@@ -61,28 +61,27 @@
   (progn
     (let ((str (with-p-buffer form
                  ;; `pp-buffer'
-                 (progn
-                   (while (not (eobp))
-                     ;; (message "%06d" (- (point-max) (point)))
-                     (cond
-                      ((ignore-errors (down-list 1) t)
-                       (save-excursion
-                         (backward-char 1)
-                         (skip-chars-backward "'`#^")
-                         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
-                           (delete-region
-                            (point)
-                            (progn (skip-chars-backward " \t\n") (point)))
-                           (insert "\n"))))
-                      ((ignore-errors (up-list 1) t)
-                       (skip-syntax-forward ")")
-                       (delete-region
-                        (point)
-                        (progn (skip-chars-forward " \t\n") (point)))
-                       (insert ?\n))
-                      (t (goto-char (point-max)))))
-                   (goto-char (point-min))
-                   (indent-sexp)))))
+                 (while (not (eobp))
+                   ;; (message "%06d" (- (point-max) (point)))
+                   (cond
+                    ((ignore-errors (down-list 1) t)
+                     (save-excursion
+                       (backward-char 1)
+                       (skip-chars-backward "'`#^")
+                       (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+                         (delete-region
+                          (point)
+                          (progn (skip-chars-backward " \t\n") (point)))
+                         (insert "\n"))))
+                    ((ignore-errors (up-list 1) t)
+                     (skip-syntax-forward ")")
+                     (delete-region
+                      (point)
+                      (progn (skip-chars-forward " \t\n") (point)))
+                     (insert ?\n))
+                    (t (goto-char (point-max)))))
+                 (goto-char (point-min))
+                 (indent-sexp))))
       (princ str))
     nil))
 

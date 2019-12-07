@@ -35,6 +35,14 @@
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/p.el"))
 
+(defcustom p-escape-newlines t
+  "Value of `print-escape-newlines' used by p-* functions."
+  :type 'boolean
+  :group 'p)
+
+
+;;; Functions
+
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn

@@ -35,37 +35,31 @@
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/p.el"))
 
-(defun p-sexp (form &optional stream)
-  "Output the pretty-printed representation of FORM.
-If specify STREAM, change `standard-output'."
+(defun p-sexp (form)
+  "Output the pretty-printed representation of FORM."
   (progn
-    (let ((standard-output (or stream standard-output)))
-      (pp form stream))
+    (pp form)
     nil))
 
-(defmacro p-macroexpand (form &optional stream)
-  "Output the pretty-printed `macroexpand-1' representation of FORM.
-If specify STREAM, change `standard-output'."
+(defmacro p-macroexpand (form)
+  "Output the pretty-printed `macroexpand-1' representation of FORM."
   `(progn
-     (let ((standard-output (or stream standard-output)))
-       (pp (macroexpand-1 ',form ,stream)))
+     (pp (macroexpand-1 ',form))
      nil))
 
-(defun p-list (form &optional stream)
-  "Output the pretty-printed representation of FORM.
-If specify STREAM, change `standard-output'."
+(defun p-list (form)
+  "Output the pretty-printed representation of FORM."
   (progn
-    (let ((standard-output (or stream standard-output)))
-      (princ
-       (with-temp-buffer
-         (insert (prin1-to-string form))
-         (goto-char (point-min))
-         (forward-char)
-         (ignore-errors
-           (while t (forward-sexp) (insert "\n")))
-         (delete-char -1)
-         (buffer-substring-no-properties (point-min) (point-max))))
-      (princ "\n"))
+    (princ
+     (with-temp-buffer
+       (insert (prin1-to-string form))
+       (goto-char (point-min))
+       (forward-char)
+       (ignore-errors
+         (while t (forward-sexp) (insert "\n")))
+       (delete-char -1)
+       (buffer-substring-no-properties (point-min) (point-max))))
+    (princ "\n")
     nil))
 
 (provide 'p)

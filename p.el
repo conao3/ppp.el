@@ -91,6 +91,13 @@
      (p-sexp (macroexpand-1 ',form))
      nil))
 
+(defmacro p-macroexpand-all (form)
+  "Output the pretty-printed representation of FORM suitable for macro.
+Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
+  `(progn
+     (p-sexp (macroexpand-all ',form))
+     nil))
+
 (defun p-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn

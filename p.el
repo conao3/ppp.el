@@ -44,7 +44,7 @@
 (defmacro p-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro."
   `(progn
-     (pp (macroexpand-1 ',form))
+     (p-sexp (macroexpand-1 ',form))
      nil))
 
 (defun p-list (form)

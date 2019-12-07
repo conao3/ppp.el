@@ -46,7 +46,39 @@
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn
-    (pp form)
+    (let ((str (with-temp-buffer
+                 (lisp-mode-variables nil)
+                 (set-syntax-table emacs-lisp-mode-syntax-table)
+                 (let ((print-escape-newlines p-escape-newlines)
+                       (print-quoted t))
+                   (prin1 form (current-buffer)))
+
+                 ;; `pp-buffer'
+                 (progn
+                   (goto-char (point-min))
+                   (while (not (eobp))
+                     ;; (message "%06d" (- (point-max) (point)))
+                     (cond
+                      ((ignore-errors (down-list 1) t)
+                       (save-excursion
+                         (backward-char 1)
+                         (skip-chars-backward "'`#^")
+                         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+                           (delete-region
+                            (point)
+                            (progn (skip-chars-backward " \t\n") (point)))
+                           (insert "\n"))))
+                      ((ignore-errors (up-list 1) t)
+                       (skip-syntax-forward ")")
+                       (delete-region
+                        (point)
+                        (progn (skip-chars-forward " \t\n") (point)))
+                       (insert ?\n))
+                      (t (goto-char (point-max)))))
+                   (goto-char (point-min))
+                   (indent-sexp))
+                 (buffer-string))))
+      (princ str))
     nil))
 
 (defmacro p-macroexpand (form)

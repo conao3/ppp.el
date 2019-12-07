@@ -99,8 +99,7 @@
                  (ignore-errors
                    (while t (forward-sexp) (insert "\n")))
                  (delete-char -1))))
-      (princ str)
-      (princ "\n"))
+      (princ (concat str "\n")))
     nil))
 
 (provide 'p)

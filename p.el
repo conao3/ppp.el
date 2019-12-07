@@ -58,16 +58,16 @@
 (defun p-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
-    (princ
-     (with-temp-buffer
-       (insert (prin1-to-string form))
-       (goto-char (point-min))
-       (forward-char)
-       (ignore-errors
-         (while t (forward-sexp) (insert "\n")))
-       (delete-char -1)
-       (buffer-substring-no-properties (point-min) (point-max))))
-    (princ "\n")
+    (let ((str (with-temp-buffer
+                 (insert (prin1-to-string form))
+                 (goto-char (point-min))
+                 (forward-char)
+                 (ignore-errors
+                   (while t (forward-sexp) (insert "\n")))
+                 (delete-char -1)
+                 (buffer-substring-no-properties (point-min) (point-max)))))
+      (princ str)
+      (princ "\n"))
     nil))
 
 (provide 'p)

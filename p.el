@@ -43,19 +43,25 @@
 
 ;;; Functions
 
+(defmacro with-p-buffer (form &rest body)
+  "Insert FORM, execute BODY, return `buffer-string'."
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (lisp-mode-variables nil)
+     (set-syntax-table emacs-lisp-mode-syntax-table)
+     (let ((print-escape-newlines p-escape-newlines)
+           (print-quoted t))
+       (prin1 ,form (current-buffer))
+       (goto-char (point-min)))
+     (progn ,@body)
+     (buffer-string)))
+
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn
-    (let ((str (with-temp-buffer
-                 (lisp-mode-variables nil)
-                 (set-syntax-table emacs-lisp-mode-syntax-table)
-                 (let ((print-escape-newlines p-escape-newlines)
-                       (print-quoted t))
-                   (prin1 form (current-buffer)))
-
+    (let ((str (with-p-buffer form
                  ;; `pp-buffer'
                  (progn
-                   (goto-char (point-min))
                    (while (not (eobp))
                      ;; (message "%06d" (- (point-max) (point)))
                      (cond
@@ -76,8 +82,7 @@
                        (insert ?\n))
                       (t (goto-char (point-max)))))
                    (goto-char (point-min))
-                   (indent-sexp))
-                 (buffer-string))))
+                   (indent-sexp)))))
       (princ str))
     nil))
 
@@ -90,14 +95,11 @@
 (defun p-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
-    (let ((str (with-temp-buffer
-                 (insert (prin1-to-string form))
-                 (goto-char (point-min))
+    (let ((str (with-p-buffer form
                  (forward-char)
                  (ignore-errors
                    (while t (forward-sexp) (insert "\n")))
-                 (delete-char -1)
-                 (buffer-substring-no-properties (point-min) (point-max)))))
+                 (delete-char -1))))
       (princ str)
       (princ "\n"))
     nil))

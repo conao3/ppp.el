@@ -55,7 +55,7 @@
        (goto-char (point-min)))
      (progn ,@body)
      (delete-trailing-whitespace)
-     (buffer-string)))
+     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."

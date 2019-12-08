@@ -200,7 +200,7 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
                                   (format warning-type-format pkg))
                           caller caller-args
                           msg)))
-                (newline))
+                (unless (and (bolp) (eolp)) (newline)))
               (when scroll
                 (goto-char (point-max))
                 (set-window-point

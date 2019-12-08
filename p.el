@@ -114,6 +114,7 @@ See `p-plist' to get more info."
 
 ;;; Functions
 
+;;;###autoload
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn
@@ -137,12 +138,14 @@ See `p-plist' to get more info."
       (princ str))
     nil))
 
+;;;###autoload
 (defmacro p-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro."
   `(progn
      (p-sexp (macroexpand-1 ',form))
      nil))
 
+;;;###autoload
 (defmacro p-macroexpand-all (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
@@ -150,6 +153,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
      (p-sexp (macroexpand-all ',form))
      nil))
 
+;;;###autoload
 (defun p-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
@@ -162,6 +166,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
       (princ (concat str "\n")))
     nil))
 
+;;;###autoload
 (defun p-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
   (progn
@@ -174,6 +179,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
       (princ (concat str "\n")))
     nil))
 
+;;;###autoload
 (defun p-debug (&rest args)
   "Output debug message to `flylint-debug-buffer'.
 

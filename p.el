@@ -56,7 +56,7 @@ You can customize each variable like p-minimum-warning-level--{{pkg}}."
   :type 'symbol)
 
 
-;;; Functions
+;;; Helpers
 
 (defmacro with-p--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
@@ -71,6 +71,9 @@ You can customize each variable like p-minimum-warning-level--{{pkg}}."
      (progn ,@body)
      (delete-trailing-whitespace)
      (buffer-substring-no-properties (point-min) (point-max))))
+
+
+;;; Functions
 
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."

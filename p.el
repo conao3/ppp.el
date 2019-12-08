@@ -191,18 +191,16 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
               (setq caller-args (car-safe trace)))
             (prog1 msg
               (save-excursion
-                (let ((start (point-max)))
-                  (goto-char (point-max))
-                  (insert
-                   (concat
-                    (and break "\n")
-                    (format "%s%s %s\n%s"
-                            (format (cadr (assq level warning-levels))
-                                    (format warning-type-format pkg))
-                            caller caller-args
-                            msg)))
-                  (newline)
-                  (indent-region start (point))))
+                (goto-char (point-max))
+                (insert
+                 (concat
+                  (and break "\n")
+                  (format "%s%s %s\n%s"
+                          (format (cadr (assq level warning-levels))
+                                  (format warning-type-format pkg))
+                          caller caller-args
+                          msg)))
+                (newline))
               (when scroll
                 (goto-char (point-max))
                 (set-window-point

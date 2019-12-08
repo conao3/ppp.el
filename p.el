@@ -112,10 +112,11 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
     (let ((str (with-p--working-buffer form
-                 (forward-char)
-                 (ignore-errors
-                   (while t (forward-sexp) (newline)))
-                 (delete-char -1))))
+                 (when (and form (listp form))
+                   (forward-char)
+                   (ignore-errors
+                     (while t (forward-sexp) (newline)))
+                   (delete-char -1)))))
       (princ (concat str "\n")))
     nil))
 
@@ -123,10 +124,11 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
   "Output the pretty-printed representation of FORM suitable for plist."
   (progn
     (let ((str (with-p--working-buffer form
-                 (forward-char)
-                 (ignore-errors
-                   (while t (forward-sexp 2) (newline)))
-                 (delete-char -1))))
+                 (when (and form (listp form))
+                   (forward-char)
+                   (ignore-errors
+                     (while t (forward-sexp 2) (newline)))
+                   (delete-char -1)))))
       (princ (concat str "\n")))
     nil))
 

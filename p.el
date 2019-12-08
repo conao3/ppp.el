@@ -185,7 +185,7 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
                 caller caller-args)
             (setq trace (cdr trace))   ; drop `backtrace' symbol
             (let ((tmp nil))
-              (dotimes (i 2)
+              (dotimes (_i 2)
                 (while (listp (setq tmp (pop trace)))))
               (setq caller tmp)
               (setq caller-args (car-safe trace)))

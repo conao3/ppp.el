@@ -85,10 +85,10 @@ You can customize each variable like p-minimum-warning-level--{{pkg}}."
                        (backward-char 1)
                        (skip-chars-backward "'`#^")
                        (when (not (bobp))
-                         (insert "\n"))))
+                         (newline))))
                     ((ignore-errors (up-list 1) t)
                      (skip-syntax-forward ")")
-                     (insert "\n"))
+                     (newline))
                     (t (goto-char (point-max)))))
                  (goto-char (point-min))
                  (indent-sexp))))
@@ -114,7 +114,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     (let ((str (with-p--working-buffer form
                  (forward-char)
                  (ignore-errors
-                   (while t (forward-sexp) (insert "\n")))
+                   (while t (forward-sexp) (newline)))
                  (delete-char -1))))
       (princ (concat str "\n")))
     nil))
@@ -125,7 +125,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     (let ((str (with-p--working-buffer form
                  (forward-char)
                  (ignore-errors
-                   (while t (forward-sexp 2) (insert "\n")))
+                   (while t (forward-sexp 2) (newline)))
                  (delete-char -1))))
       (princ (concat str "\n")))
     nil))

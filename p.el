@@ -104,6 +104,17 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
       (princ (concat str "\n")))
     nil))
 
+(defun p-plist (form)
+  "Output the pretty-printed representation of FORM suitable for plist."
+  (progn
+    (let ((str (with-p-buffer form
+                 (forward-char)
+                 (ignore-errors
+                   (while t (forward-sexp 2) (insert "\n")))
+                 (delete-char -1))))
+      (princ (concat str "\n")))
+    nil))
+
 (provide 'p)
 
 ;; Local Variables:

@@ -73,6 +73,45 @@ You can customize each variable like p-minimum-warning-level--{{pkg}}."
      (buffer-substring-no-properties (point-min) (point-max))))
 
 
+;;; Macros
+
+;;;###autoload
+(defmacro p-sexp-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for objects.
+See `p-sexp' to get more info."
+  `(with-output-to-string
+     (p-sexp ,form)))
+
+;;;###autoload
+(defmacro p-macroexpand-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for macro.
+See `p-macroexpand' to get more info."
+  `(with-output-to-string
+     (p-macroexpand ,form)))
+
+;;;###autoload
+(defmacro p-macroexpand-all-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for macro.
+Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
+See `p-macroexpand-all' to get more info."
+  `(with-output-to-string
+     (p-macroexpand-all ,form)))
+
+;;;###autoload
+(defmacro p-list-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for list.
+See `p-list' to get more info."
+  `(with-output-to-string
+     (p-list ,form)))
+
+;;;###autoload
+(defmacro p-plist-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for plist.
+See `p-plist' to get more info."
+  `(with-output-to-string
+     (p-plist ,form)))
+
+
 ;;; Functions
 
 (defun p-sexp (form)

@@ -180,7 +180,15 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
         (when (<= (warning-numeric-level (symbol-value (intern arg-name)))
                   (warning-numeric-level level))
           (let ((msg (apply #'format `(,format ,@format-args)))
-                (scroll (equal (point) (point-max))))
+                (scroll (equal (point) (point-max)))
+                (trace (read (format "(%s)" (with-output-to-string (backtrace)))))
+                caller caller-args)
+            (setq trace (cdr trace))   ; drop `backtrace' symbol
+            (let ((tmp nil))
+              (dotimes (i 2)
+                (while (listp (setq tmp (pop trace)))))
+              (setq caller tmp)
+              (setq caller-args (car-safe trace)))
             (prog1 msg
               (save-excursion
                 (let ((start (point-max)))
@@ -188,9 +196,11 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
                   (insert
                    (concat
                     (and break "\n")
-                    (format (cadr (assq level warning-levels))
-                            (format warning-type-format pkg))
-                    msg))
+                    (format "%s%s %s\n%s"
+                            (format (cadr (assq level warning-levels))
+                                    (format warning-type-format pkg))
+                            caller caller-args
+                            msg)))
                   (newline)
                   (indent-region start (point))))
               (when scroll

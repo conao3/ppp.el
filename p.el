@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'warnings)
+
 (defgroup p nil
   "Extended pretty printer for Emacs Lisp"
   :prefix "p-"
@@ -39,6 +41,19 @@
   "Value of `print-escape-newlines' used by p-* functions."
   :type 'boolean
   :group 'p)
+
+(defcustom p-debug-buffer-template "*P Debug buffer - %s*"
+  "Buffer name for debugging."
+  :group 'p
+  :type 'string)
+
+(defcustom p-minimum-warning-level-base :warning
+  "Minimum level for debugging.
+It should be either :debug, :warning, :error, or :emergency.
+Every minimul-earning-level variable initialized by this variable.
+You can customize each variable like p-minimum-warning-level--{{pkg}}."
+  :group 'p
+  :type 'symbol)
 
 
 ;;; Functions
@@ -114,6 +129,74 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
                  (delete-char -1))))
       (princ (concat str "\n")))
     nil))
+
+(defun p-debug (&rest args)
+  "Output debug message to `flylint-debug-buffer'.
+
+FORMAT and FORMAT-ARGS passed `format'.
+PKG is accept symbol.
+If BUFFER is specified, output that buffer.
+If LEVEL is specified, output higher than `flylint-minimum-warning-level'.
+If POPUP is non-nil, `display-buffer' debug buffer.
+If BREAK is non-nil, output page break before output string.
+
+ARGS accept (PKG &key buffer level break &rest FORMAT-ARGS).
+
+\(fn &key buffer level break PKG FORMAT &rest FORMAT-ARGS)"
+  (declare (indent defun))
+  (let ((buffer nil)
+        (level :debug)
+        (popup nil)
+        (break nil)
+        (pkg 'unknown)
+        format format-args elm)
+    (while (keywordp (setq elm (pop args)))
+      (cond ((eq :buffer elm)
+             (setq buffer (pop args)))
+            ((eq :popup elm)
+             (setq popup (pop args)))
+            ((eq :level elm)
+             (setq level (pop args)))
+            ((eq :break elm)
+             (setq break (pop args)))
+            (t
+             (error "Unknown keyword: %s" elm))))
+    (setq pkg elm)
+    (setq format (pop args))
+    (setq format-args args)
+    (let ((arg-name (format "p-minimum-warning-level--%s" elm)))
+      (unless (boundp (intern arg-name))
+        (eval
+         `(defcustom ,(intern arg-name) p-minimum-warning-level-base
+            ,(format "Minimum level for debugging %s.
+It should be either :debug, :warning, :error, or :emergency." pkg)
+            :group 'p
+            :type 'pkg)))
+      (with-current-buffer (get-buffer-create
+                            (or buffer (format (format p-debug-buffer-template pkg))))
+        (emacs-lisp-mode)
+        (when popup
+          (display-buffer (current-buffer)))
+        (when (<= (warning-numeric-level (symbol-value (intern arg-name)))
+                  (warning-numeric-level level))
+          (let ((msg (apply #'format `(,format ,@format-args)))
+                (scroll (equal (point) (point-max))))
+            (prog1 msg
+              (save-excursion
+                (let ((start (point-max)))
+                  (goto-char (point-max))
+                  (insert
+                   (concat
+                    (and break "\n")
+                    (format (cadr (assq level warning-levels))
+                            (format warning-type-format pkg))
+                    msg))
+                  (newline)
+                  (indent-region start (point))))
+              (when scroll
+                (goto-char (point-max))
+                (set-window-point
+                 (get-buffer-window (current-buffer)) (point-max))))))))))
 
 (provide 'p)
 

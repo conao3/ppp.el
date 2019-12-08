@@ -43,7 +43,7 @@
 
 ;;; Functions
 
-(defmacro with-p-buffer (form &rest body)
+(defmacro with-p--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
   (declare (indent 1) (debug t))
   `(with-temp-buffer
@@ -60,7 +60,7 @@
 (defun p-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn
-    (let ((str (with-p-buffer form
+    (let ((str (with-p--working-buffer form
                  ;; `pp-buffer'
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
@@ -96,7 +96,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
 (defun p-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
-    (let ((str (with-p-buffer form
+    (let ((str (with-p--working-buffer form
                  (forward-char)
                  (ignore-errors
                    (while t (forward-sexp) (insert "\n")))
@@ -107,7 +107,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
 (defun p-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
   (progn
-    (let ((str (with-p-buffer form
+    (let ((str (with-p--working-buffer form
                  (forward-char)
                  (ignore-errors
                    (while t (forward-sexp 2) (insert "\n")))

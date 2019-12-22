@@ -3,7 +3,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "p.el")
+(package-file "ppp.el")
 
 (development
  (depends-on "elsa")

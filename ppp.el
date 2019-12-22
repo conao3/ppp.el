@@ -1,4 +1,4 @@
-;;; p.el --- Extended pretty printer for Emacs Lisp  -*- lexical-binding: t; -*-
+;;; ppp.el --- Extended pretty printer for Emacs Lisp  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Naoya Yamashita
 
@@ -7,7 +7,7 @@
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "26"))
 ;; License: AGPL-3.0
-;; URL: https://github.com/conao3/p.el
+;; URL: https://github.com/conao3/ppp.el
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as
@@ -31,40 +31,40 @@
 
 (require 'warnings)
 
-(defgroup p nil
+(defgroup ppp nil
   "Extended pretty printer for Emacs Lisp"
-  :prefix "p-"
+  :prefix "ppp-"
   :group 'tools
-  :link '(url-link :tag "Github" "https://github.com/conao3/p.el"))
+  :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
 
-(defcustom p-escape-newlines t
-  "Value of `print-escape-newlines' used by p-* functions."
+(defcustom ppp-escape-newlines t
+  "Value of `print-escape-newlines' used by ppp-* functions."
   :type 'boolean
-  :group 'p)
+  :group 'ppp)
 
-(defcustom p-debug-buffer-template "*P Debug buffer - %s*"
+(defcustom ppp-debug-buffer-template "*P Debug buffer - %s*"
   "Buffer name for debugging."
-  :group 'p
+  :group 'ppp
   :type 'string)
 
-(defcustom p-minimum-warning-level-base :warning
+(defcustom ppp-minimum-warning-level-base :warning
   "Minimum level for debugging.
 It should be either :debug, :warning, :error, or :emergency.
 Every minimul-earning-level variable initialized by this variable.
-You can customize each variable like p-minimum-warning-level--{{pkg}}."
-  :group 'p
+You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
+  :group 'ppp
   :type 'symbol)
 
 
 ;;; Helpers
 
-(defmacro with-p--working-buffer (form &rest body)
+(defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
   (declare (indent 1) (debug t))
   `(with-temp-buffer
      (lisp-mode-variables nil)
      (set-syntax-table emacs-lisp-mode-syntax-table)
-     (let ((print-escape-newlines p-escape-newlines)
+     (let ((print-escape-newlines ppp-escape-newlines)
            (print-quoted t))
        (prin1 ,form (current-buffer))
        (goto-char (point-min)))
@@ -76,49 +76,49 @@ You can customize each variable like p-minimum-warning-level--{{pkg}}."
 ;;; Macros
 
 ;;;###autoload
-(defmacro p-sexp-to-string (form)
+(defmacro ppp-sexp-to-string (form)
   "Output the pretty-printed representation of FORM suitable for objects.
-See `p-sexp' to get more info."
+See `ppp-sexp' to get more info."
   `(with-output-to-string
-     (p-sexp ,form)))
+     (ppp-sexp ,form)))
 
 ;;;###autoload
-(defmacro p-macroexpand-to-string (form)
+(defmacro ppp-macroexpand-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
-See `p-macroexpand' to get more info."
+See `ppp-macroexpand' to get more info."
   `(with-output-to-string
-     (p-macroexpand ,form)))
+     (ppp-macroexpand ,form)))
 
 ;;;###autoload
-(defmacro p-macroexpand-all-to-string (form)
+(defmacro ppp-macroexpand-all-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
-Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
-See `p-macroexpand-all' to get more info."
+Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
+See `ppp-macroexpand-all' to get more info."
   `(with-output-to-string
-     (p-macroexpand-all ,form)))
+     (ppp-macroexpand-all ,form)))
 
 ;;;###autoload
-(defmacro p-list-to-string (form)
+(defmacro ppp-list-to-string (form)
   "Output the pretty-printed representation of FORM suitable for list.
-See `p-list' to get more info."
+See `ppp-list' to get more info."
   `(with-output-to-string
-     (p-list ,form)))
+     (ppp-list ,form)))
 
 ;;;###autoload
-(defmacro p-plist-to-string (form)
+(defmacro ppp-plist-to-string (form)
   "Output the pretty-printed representation of FORM suitable for plist.
-See `p-plist' to get more info."
+See `ppp-plist' to get more info."
   `(with-output-to-string
-     (p-plist ,form)))
+     (ppp-plist ,form)))
 
 
 ;;; Functions
 
 ;;;###autoload
-(defun p-sexp (form)
+(defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (progn
-    (let ((str (with-p--working-buffer form
+    (let ((str (with-ppp--working-buffer form
                  ;; `pp-buffer'
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
@@ -139,25 +139,25 @@ See `p-plist' to get more info."
     nil))
 
 ;;;###autoload
-(defmacro p-macroexpand (form)
+(defmacro ppp-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro."
   `(progn
-     (p-sexp (macroexpand-1 ',form))
+     (ppp-sexp (macroexpand-1 ',form))
      nil))
 
 ;;;###autoload
-(defmacro p-macroexpand-all (form)
+(defmacro ppp-macroexpand-all (form)
   "Output the pretty-printed representation of FORM suitable for macro.
-Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
+Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
   `(progn
-     (p-sexp (macroexpand-all ',form))
+     (ppp-sexp (macroexpand-all ',form))
      nil))
 
 ;;;###autoload
-(defun p-list (form)
+(defun ppp-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (progn
-    (let ((str (with-p--working-buffer form
+    (let ((str (with-ppp--working-buffer form
                  (when (and form (listp form))
                    (forward-char)
                    (ignore-errors
@@ -167,10 +167,10 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     nil))
 
 ;;;###autoload
-(defun p-plist (form)
+(defun ppp-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
   (progn
-    (let ((str (with-p--working-buffer form
+    (let ((str (with-ppp--working-buffer form
                  (when (and form (listp form))
                    (forward-char)
                    (ignore-errors
@@ -180,7 +180,7 @@ Unlike `p-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     nil))
 
 ;;;###autoload
-(defun p-debug (&rest args)
+(defun ppp-debug (&rest args)
   "Output debug message to `flylint-debug-buffer'.
 
 FORMAT and FORMAT-ARGS passed `format'.
@@ -214,16 +214,16 @@ ARGS accept (PKG &key buffer level break &rest FORMAT-ARGS).
     (setq pkg elm)
     (setq format (pop args))
     (setq format-args args)
-    (let ((arg-name (format "p-minimum-warning-level--%s" elm)))
+    (let ((arg-name (format "ppp-minimum-warning-level--%s" elm)))
       (unless (boundp (intern arg-name))
         (eval
-         `(defcustom ,(intern arg-name) p-minimum-warning-level-base
+         `(defcustom ,(intern arg-name) ppp-minimum-warning-level-base
             ,(format "Minimum level for debugging %s.
 It should be either :debug, :warning, :error, or :emergency." pkg)
-            :group 'p
+            :group 'ppp
             :type 'pkg)))
       (with-current-buffer (get-buffer-create
-                            (or buffer (format (format p-debug-buffer-template pkg))))
+                            (or buffer (format (format ppp-debug-buffer-template pkg))))
         (emacs-lisp-mode)
         (when popup
           (display-buffer (current-buffer)))
@@ -256,10 +256,10 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
                 (set-window-point
                  (get-buffer-window (current-buffer)) (point-max))))))))))
 
-(provide 'p)
+(provide 'ppp)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; p.el ends here
+;;; ppp.el ends here

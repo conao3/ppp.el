@@ -1,10 +1,10 @@
-;;; p-test.el --- Test definitions for p  -*- lexical-binding: t; -*-
+;;; ppp-test.el --- Test definitions for ppp  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; License: AGPL-3.0
-;; Homepage: https://github.com/conao3/p.el
+;; Homepage: https://github.com/conao3/ppp.el
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as
@@ -21,21 +21,21 @@
 
 ;;; Commentary:
 
-;; Test definitions for `p'.
+;; Test definitions for `ppp'.
 
 
 ;;; Code:
 
 (require 'buttercup)
-(require 'p)
+(require 'ppp)
 
-(defconst p-test-dir (file-name-directory
-                            (cond
-                             (load-in-progress load-file-name)
-                             ((and (boundp 'byte-compile-current-file)
-                                   byte-compile-current-file)
-                              byte-compile-current-file)
-                             (:else (buffer-file-name)))))
+(defconst ppp-test-dir (file-name-directory
+                        (cond
+                         (load-in-progress load-file-name)
+                         ((and (boundp 'byte-compile-current-file)
+                               byte-compile-current-file)
+                          byte-compile-current-file)
+                         (:else (buffer-file-name)))))
 
 (describe "A suite"
   (it "contains a spec with an expectation"
@@ -47,4 +47,4 @@
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; p-test.el ends here
+;;; ppp-test.el ends here

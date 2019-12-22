@@ -18,8 +18,8 @@
 all:
 
 REPO_USER    := conao3
-PACKAGE_NAME := p
-REPO_NAME    := p.el
+PACKAGE_NAME := ppp
+REPO_NAME    := ppp.el
 
 EMACS        ?= emacs
 ELS          := $(shell cask files)

@@ -117,26 +117,25 @@ See `ppp-plist' to get more info."
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
-  (progn
-    (let ((str (with-ppp--working-buffer form
-                 ;; `pp-buffer'
-                 (while (not (eobp))
-                   ;; (message "%06d" (- (point-max) (point)))
-                   (cond
-                    ((ignore-errors (down-list 1) t)
-                     (save-excursion
-                       (backward-char 1)
-                       (skip-chars-backward "'`#^")
-                       (when (not (bobp))
-                         (newline))))
-                    ((ignore-errors (up-list 1) t)
-                     (skip-syntax-forward ")")
-                     (newline))
-                    (t (goto-char (point-max)))))
-                 (goto-char (point-min))
-                 (indent-sexp))))
-      (princ str))
-    nil))
+  (let ((str (with-ppp--working-buffer form
+               ;; `pp-buffer'
+               (while (not (eobp))
+                 ;; (message "%06d" (- (point-max) (point)))
+                 (cond
+                  ((ignore-errors (down-list 1) t)
+                   (save-excursion
+                     (backward-char 1)
+                     (skip-chars-backward "'`#^")
+                     (when (not (bobp))
+                       (newline))))
+                  ((ignore-errors (up-list 1) t)
+                   (skip-syntax-forward ")")
+                   (newline))
+                  (t (goto-char (point-max)))))
+               (goto-char (point-min))
+               (indent-sexp))))
+    (princ str))
+  nil)
 
 ;;;###autoload
 (defmacro ppp-macroexpand (form)
@@ -156,28 +155,26 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
 ;;;###autoload
 (defun ppp-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
-  (progn
-    (let ((str (with-ppp--working-buffer form
-                 (when (and form (listp form))
-                   (forward-char)
-                   (ignore-errors
-                     (while t (forward-sexp) (newline)))
-                   (delete-char -1)))))
-      (princ (concat str "\n")))
-    nil))
+  (let ((str (with-ppp--working-buffer form
+               (when (and form (listp form))
+                 (forward-char)
+                 (ignore-errors
+                   (while t (forward-sexp) (newline)))
+                 (delete-char -1)))))
+    (princ (concat str "\n")))
+  nil)
 
 ;;;###autoload
 (defun ppp-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
-  (progn
-    (let ((str (with-ppp--working-buffer form
-                 (when (and form (listp form))
-                   (forward-char)
-                   (ignore-errors
-                     (while t (forward-sexp 2) (newline)))
-                   (delete-char -1)))))
-      (princ (concat str "\n")))
-    nil))
+  (let ((str (with-ppp--working-buffer form
+               (when (and form (listp form))
+                 (forward-char)
+                 (ignore-errors
+                   (while t (forward-sexp 2) (newline)))
+                 (delete-char -1)))))
+    (princ (concat str "\n")))
+  nil)
 
 ;;;###autoload
 (defun ppp-debug (&rest args)

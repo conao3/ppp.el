@@ -1,11 +1,11 @@
 #+author: conao3
 #+date: <2019-12-07 Sat>
 
-[[https://github.com/conao3/p.el][https://raw.githubusercontent.com/conao3/files/master/blob/headers/png/p.el.png]]
-[[https://github.com/conao3/p.el/blob/master/LICENSE][https://img.shields.io/github/license/conao3/p.el.svg?style=flat-square]]
-[[https://github.com/conao3/p.el/releases][https://img.shields.io/github/tag/conao3/p.el.svg?style=flat-square]]
-[[https://github.com/conao3/p.el/actions][https://github.com/conao3/p.el/workflows/Main%20workflow/badge.svg]]
-[[https://app.codacy.com/project/conao3/p.el/dashboard][https://img.shields.io/codacy/grade/62a36f4f04524d5e8c758440e8071c45.svg?logo=codacy&style=flat-square]]
+[[https://github.com/conao3/ppp.el][https://raw.githubusercontent.com/conao3/files/master/blob/headers/png/ppp.el.png]]
+[[https://github.com/conao3/ppp.el/blob/master/LICENSE][https://img.shields.io/github/license/conao3/ppp.el.svg?style=flat-square]]
+[[https://github.com/conao3/ppp.el/releases][https://img.shields.io/github/tag/conao3/ppp.el.svg?style=flat-square]]
+[[https://github.com/conao3/ppp.el/actions][https://github.com/conao3/ppp.el/workflows/Main%20workflow/badge.svg]]
+[[https://app.codacy.com/project/conao3/ppp.el/dashboard][https://img.shields.io/codacy/grade/62a36f4f04524d5e8c758440e8071c45.svg?logo=codacy&style=flat-square]]
 [[https://twitter.com/conao_3][https://img.shields.io/badge/patreon-become%20a%20patron-orange.svg?logo=patreon&style=flat-square]]
 [[https://twitter.com/conao_3][https://img.shields.io/badge/twitter-@conao__3-blue.svg?logo=twitter&style=flat-square]]
 [[https://conao3-support.slack.com/join/shared_invite/enQtNjUzMDMxODcyMjE1LWUwMjhiNTU3Yjk3ODIwNzAxMTgwOTkxNmJiN2M4OTZkMWY0NjI4ZTg4MTVlNzcwNDY2ZjVjYmRiZmJjZDU4MDE][https://img.shields.io/badge/chat-on_slack-blue.svg?logo=slack&style=flat-square]]
@@ -29,10 +29,43 @@
 * Description
 
 * Install
+Below install snippet using [[https://github.com/conao3/leaf.el][leaf.el]]
+
+#+begin_src emacs-lisp
+  (leaf ppp :ensure t)
+#+end_src
 
 * Usage
+Just use below functions.
+- ppp-sexp
+- ppp-macroexpand
+- ppp-macroexpand-all
+- ppp-list
+- ppp-plist
+- ppp-debug
+
+And those ~*-to-string~ functions.
 
 * Customize
+#+begin_src emacs-lisp
+  (defcustom ppp-escape-newlines t
+    "Value of `print-escape-newlines' used by ppp-* functions."
+    :type 'boolean
+    :group 'ppp)
+
+  (defcustom ppp-debug-buffer-template "*P Debug buffer - %s*"
+    "Buffer name for debugging."
+    :group 'ppp
+    :type 'string)
+
+  (defcustom ppp-minimum-warning-level-base :warning
+    "Minimum level for debugging.
+  It should be either :debug, :warning, :error, or :emergency.
+  Every minimul-earning-level variable initialized by this variable.
+  You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
+    :group 'ppp
+    :type 'symbol)
+#+end_src
 
 * Information
 ** Donation
@@ -74,7 +107,7 @@ Below operation flow is recommended.
   git checkout [feature-branch]     # Checkout branch named [feature-branch]
 
   # <edit loop>
-  emacs p.el                        # Edit something you want
+  emacs ppp.el                      # Edit something you want
 
   make test                         # Test package via multi version Emacs
   git commit -am "brabra"           # Commit (auto-run test before commit)
@@ -91,7 +124,7 @@ Below operation flow is recommended.
 #+begin_example
   General Public License Version 3 (GPLv3)
   Copyright (c) Naoya Yamashita - https://conao3.com
-  https://github.com/conao3/p.el/blob/master/LICENSE
+  https://github.com/conao3/ppp.el/blob/master/LICENSE
 #+end_example
 
 ** Author

@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'warnings)
+(require 'seq)
 
 (defgroup ppp nil
   "Extended pretty printer for Emacs Lisp"
@@ -186,6 +187,17 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
         :group 'ppp
         :type 'symbol))))
 
+(defun ppp--get-caller (&optional level)
+  "Get caller function and arguments from backtrace.
+Optional arguments LEVEL is pop level for backtrace."
+  (let ((trace-str (format "(%s)" (with-output-to-string (backtrace))))
+        trace)
+    (setq trace (cdr (read trace-str)))   ; drop `backtrace' symbol
+    (let (tmp)
+      (dotimes (_i (or level 1))
+        (while (listp (setq tmp (pop trace)))))
+      `(,tmp ,(car-safe trace)))))
+
 ;;;###autoload
 (defmacro ppp-debug (&rest args)
   "Output debug message to `flylint-debug-buffer'.
@@ -241,29 +253,22 @@ Note:
            (prog1 t
              (let ((inhibit-read-only t)
                    (msg (format ,format-raw ,@format-args-raw))
-                   (scroll (equal (point) (point-max)))
-                   (trace (read (format "(%s)" (with-output-to-string (backtrace)))))
-                   caller caller-args)
-               (setq trace (cdr trace))   ; drop `backtrace' symbol
-               (let ((tmp nil))
-                 (dotimes (_i 2)
-                   (while (listp (setq tmp (pop trace)))))
-                 (setq caller tmp)
-                 (setq caller-args (car-safe trace)))
-               (save-excursion
-                 (goto-char (point-max))
-                 (insert
-                  (concat
-                   ,(and break "\n")
-                   (format
-                    ,(concat
-                      (format (cadr (assq level warning-levels))
-                              (format warning-type-format pkg))
-                      "%s %s\n%s")
-                    caller caller-args
-                    msg)))
-                 (unless (and (bolp) (eolp))
-                   (newline)))
+                   (scroll (equal (point) (point-max))))
+               (seq-let (caller caller-args) (ppp--get-caller 2)
+                 (save-excursion
+                   (goto-char (point-max))
+                   (insert
+                    (concat
+                     ,(and break "\n")
+                     (format
+                      ,(concat
+                        (format (cadr (assq level warning-levels))
+                                (format warning-type-format pkg))
+                        "%s %s\n%s")
+                      caller caller-args
+                      msg)))
+                   (unless (and (bolp) (eolp))
+                     (newline))))
                (when scroll
                  (goto-char (point-max))
                  (set-window-point

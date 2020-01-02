@@ -43,7 +43,7 @@
   :type 'boolean
   :group 'ppp)
 
-(defcustom ppp-debug-buffer-template "*P Debug buffer - %s*"
+(defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
   "Buffer name for debugging."
   :group 'ppp
   :type 'string)

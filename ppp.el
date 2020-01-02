@@ -127,10 +127,16 @@ See `ppp-plist' to get more info."
                    (save-excursion
                      (backward-char 1)
                      (skip-chars-backward "'`#^")
-                     (when (not (bobp))
-                       (newline))))
+                     (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+                       (delete-region
+                        (point)
+                        (progn (skip-chars-backward " \t\n") (point)))
+                       (insert "\n"))))
                   ((ignore-errors (up-list 1) t)
                    (skip-syntax-forward ")")
+                   (delete-region
+                    (point)
+                    (progn (skip-chars-forward " \t\n") (point)))
                    (newline))
                   (t (goto-char (point-max)))))
                (goto-char (point-min))

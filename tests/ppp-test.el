@@ -41,6 +41,34 @@
   (it "contains a spec with an expectation"
     (expect t :to-be t)))
 
+(describe "ppp-sexp"
+  (it "well format (1)"
+    (expect
+     (ppp-sexp-to-string '(a b c))
+     :to-equal
+     "\
+(a b c)
+"))
+  (it "well format (2)"
+    (expect
+     (ppp-sexp-to-string '(a (some-function a b) c))
+     :to-equal
+     "\
+(a
+ (some-function a b)
+ c)
+"))
+  (it "well format (3)"
+    (expect
+     (ppp-sexp-to-string '(a (when a (some-function a b)) c))
+     :to-equal
+     "\
+(a
+ (when a
+   (some-function a b))
+ c)
+")))
+
 ;; (provide 'p-test)
 
 ;; Local Variables:

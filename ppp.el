@@ -3,9 +3,9 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Keywords: tools
-;; Package-Requires: ((emacs "26"))
+;; Package-Requires: ((emacs "25.1"))
 ;; License: AGPL-3.0
 ;; URL: https://github.com/conao3/ppp.el
 
@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'warnings)
+(require 'seq)
 
 (defgroup ppp nil
   "Extended pretty printer for Emacs Lisp"
@@ -42,7 +43,7 @@
   :type 'boolean
   :group 'ppp)
 
-(defcustom ppp-debug-buffer-template "*P Debug buffer - %s*"
+(defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
   "Buffer name for debugging."
   :group 'ppp
   :type 'string)
@@ -176,82 +177,104 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     (princ (concat str "\n")))
   nil)
 
+(defun ppp--define-warning-level-symbol (sym pkg)
+  "Define SYM as variable if not defined for PKG."
+  (unless (boundp sym)
+    (eval
+     `(defcustom ,sym ppp-minimum-warning-level-base
+        ,(format "Minimum level for debugging %s.
+It should be either :debug, :warning, :error, or :emergency." pkg)
+        :group 'ppp
+        :type 'symbol))))
+
+(defun ppp--get-caller (&optional level)
+  "Get caller function and arguments from backtrace.
+Optional arguments LEVEL is pop level for backtrace."
+  (let ((trace-str (format "(%s)" (with-output-to-string (backtrace))))
+        trace)
+    (setq trace (cdr (read trace-str)))   ; drop `backtrace' symbol
+    (let (tmp)
+      (dotimes (_i (or level 1))
+        (while (listp (setq tmp (pop trace)))))
+      `(,tmp ,(car-safe trace)))))
+
 ;;;###autoload
-(defun ppp-debug (&rest args)
+(defmacro ppp-debug (&rest args)
   "Output debug message to `flylint-debug-buffer'.
 
-FORMAT and FORMAT-ARGS passed `format'.
-PKG is accept symbol.
-If BUFFER is specified, output that buffer.
-If LEVEL is specified, output higher than `flylint-minimum-warning-level'.
-If POPUP is non-nil, `display-buffer' debug buffer.
-If BREAK is non-nil, output page break before output string.
+ARGS accepts (KEYWORD-ARGUMENTS... PKG FORMAT &rest FORMAT-ARGS).
+ 
+Auto arguments:
+  PKG is symbol.
+  FORMAT and FORMAT-ARGS passed `format'.
 
-ARGS accept (PKG &key buffer level break &rest FORMAT-ARGS).
+Keyword arguments:
+  If LEVEL is specified, output higher than
+  `ppp-minimum-warning-level--{{PKG}}' initialized `ppp-minimum-warning-level'.
+  LEVEL should be one of :debug, :warning, :error, or :emergency.
+  If LEVEL is omitted, assume :debug.
+  If BUFFER is specified, output that buffer.
+  If POPUP is non-nil, `display-buffer' debug buffer.
+  If BREAK is non-nil, output page break before output string.
+
+Note:
+  If use keyword arguments, must specified these before auto arguments.
 
 \(fn &key buffer level break PKG FORMAT &rest FORMAT-ARGS)"
   (declare (indent defun))
-  (let ((buffer nil)
-        (level :debug)
-        (popup nil)
-        (break nil)
-        (pkg 'unknown)
-        format format-args elm)
-    (while (keywordp (setq elm (pop args)))
-      (cond ((eq :buffer elm)
-             (setq buffer (pop args)))
-            ((eq :popup elm)
-             (setq popup (pop args)))
-            ((eq :level elm)
-             (setq level (pop args)))
-            ((eq :break elm)
-             (setq break (pop args)))
-            (t
-             (error "Unknown keyword: %s" elm))))
-    (setq pkg elm)
-    (setq format (pop args))
-    (setq format-args args)
-    (let ((arg-name (format "ppp-minimum-warning-level--%s" elm)))
-      (unless (boundp (intern arg-name))
-        (eval
-         `(defcustom ,(intern arg-name) ppp-minimum-warning-level-base
-            ,(format "Minimum level for debugging %s.
-It should be either :debug, :warning, :error, or :emergency." pkg)
-            :group 'ppp
-            :type 'pkg)))
-      (with-current-buffer (get-buffer-create
-                            (or buffer (format (format ppp-debug-buffer-template pkg))))
-        (emacs-lisp-mode)
-        (when popup
-          (display-buffer (current-buffer)))
-        (when (<= (warning-numeric-level (symbol-value (intern arg-name)))
-                  (warning-numeric-level level))
-          (let ((msg (apply #'format `(,format ,@format-args)))
-                (scroll (equal (point) (point-max)))
-                (trace (read (format "(%s)" (with-output-to-string (backtrace)))))
-                caller caller-args)
-            (setq trace (cdr trace))   ; drop `backtrace' symbol
-            (let ((tmp nil))
-              (dotimes (_i 2)
-                (while (listp (setq tmp (pop trace)))))
-              (setq caller tmp)
-              (setq caller-args (car-safe trace)))
-            (prog1 msg
-              (save-excursion
-                (goto-char (point-max))
-                (insert
-                 (concat
-                  (and break "\n")
-                  (format "%s%s %s\n%s"
-                          (format (cadr (assq level warning-levels))
-                                  (format warning-type-format pkg))
-                          caller caller-args
-                          msg)))
-                (unless (and (bolp) (eolp)) (newline)))
-              (when scroll
-                (goto-char (point-max))
-                (set-window-point
-                 (get-buffer-window (current-buffer)) (point-max))))))))))
+  (let (prop)
+    (cl-loop for (key val) on args by #'cddr
+             for rest on args by #'cddr
+             for key* = (eval key)
+             while (keywordp key*)
+             do (if (memq key* '(:level :buffer :popup :break))
+                    (setf (alist-get key* prop) (eval val))
+                  (error "Unknown keyword: %s" key*))
+             finally (progn
+                       (setf (alist-get :pkg prop) (eval (pop rest)))
+                       (setf (alist-get :format-raw prop) (pop rest))
+                       (setf (alist-get :format-args-raw prop) rest)))
+    (let* ((pkg             (alist-get :pkg prop))
+           (format-raw      (alist-get :format-raw prop))
+           (format-args-raw (alist-get :format-args-raw prop))
+           (level           (or (alist-get :level prop) :debug))
+           (buffer          (or (alist-get :buffer prop)
+                                (format ppp-debug-buffer-template pkg)))
+           (popup           (alist-get :popup prop))
+           (break           (alist-get :break prop))
+           (min-level       (intern
+                             (format "ppp-minimum-warning-level--%s" pkg))))
+      (ppp--define-warning-level-symbol min-level pkg)
+      `(with-current-buffer (get-buffer-create ,buffer)
+         (special-mode)
+         (emacs-lisp-mode)
+         (when (<= (warning-numeric-level ,min-level)
+                   (warning-numeric-level ,level))
+           (prog1 t
+             (let ((inhibit-read-only t)
+                   (msg (format ,format-raw ,@format-args-raw))
+                   (scroll (equal (point) (point-max))))
+               (seq-let (caller caller-args) (ppp--get-caller 2)
+                 (save-excursion
+                   (goto-char (point-max))
+                   (insert
+                    (concat
+                     ,(and break "\n")
+                     (format
+                      ,(concat
+                        (format (cadr (assq level warning-levels))
+                                (format warning-type-format pkg))
+                        "%s %s\n%s")
+                      caller caller-args
+                      msg)))
+                   (unless (and (bolp) (eolp))
+                     (newline))))
+               (when scroll
+                 (goto-char (point-max))
+                 (set-window-point
+                  (get-buffer-window (current-buffer)) (point-max)))
+               ,(when popup
+                  '(display-buffer (current-buffer))))))))))
 
 (provide 'ppp)
 

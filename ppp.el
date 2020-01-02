@@ -5,7 +5,7 @@
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; Version: 1.0.0
 ;; Keywords: tools
-;; Package-Requires: ((emacs "26"))
+;; Package-Requires: ((emacs "25.1"))
 ;; License: AGPL-3.0
 ;; URL: https://github.com/conao3/ppp.el
 

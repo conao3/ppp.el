@@ -71,7 +71,40 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
        (goto-char (point-min)))
      (progn ,@body)
      (delete-trailing-whitespace)
+     (while (re-search-forward "^ *)" nil t)
+       (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
+
+(defvar-local ppp-buffer-using nil
+  "If non-nil, curerntly using *ppp-debug* buffer.")
+
+(defmacro with-ppp--debug-working-buffer (form &rest body)
+  "Insert FORM, execute BODY, return `buffer-string'.
+Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
+  (declare (indent 1) (debug t))
+  `(let ((bufname "*ppp-debug*")
+         newbuf)
+     (with-current-buffer bufname
+       (when ppp-buffer-using
+         (setq newbuf (generate-new-buffer bufname))
+         (set-buffer newbuf))
+       (erase-buffer)
+       (unwind-protect
+           (let ((ppp-buffer-using t))
+             ;; see `with-ppp--working-buffer'
+             (lisp-mode-variables nil)
+             (set-syntax-table emacs-lisp-mode-syntax-table)
+             (let ((print-escape-newlines ppp-escape-newlines)
+                   (print-quoted t))
+               (prin1 ,form (current-buffer))
+               (goto-char (point-min)))
+             (progn ,@body)
+             (delete-trailing-whitespace)
+             (while (re-search-forward "^ *)" nil t)
+               (delete-region (line-end-position 0) (1- (point))))
+             (buffer-substring-no-properties (point-min) (point-max)))
+         (when newbuf
+           (kill-buffer newbuf))))))
 
 
 ;;; Macros
@@ -115,6 +148,21 @@ See `ppp-plist' to get more info."
 
 ;;; Functions
 
+(defun ppp--delete-spaces-at-point ()
+  "Delete spaces near point."
+  (let ((spaces " \t\n"))
+    (delete-region
+     (progn (skip-chars-backward spaces) (point))
+     (progn (skip-chars-forward spaces) (point)))))
+
+(defun ppp--delete-last-newline (str)
+  "Delete last newline character for STR."
+  (replace-regexp-in-string "\n$" "" str))
+
+(defun ppp--space-before-p ()
+  "Return non-nil if before point is spaces."
+  (memq (char-before) '(?\s ?\t ?\n)))
+
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
@@ -123,23 +171,34 @@ See `ppp-plist' to get more info."
                  ;; `pp-buffer'
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
-                   (cond
-                    ((ignore-errors (down-list 1) t)
-                     (save-excursion
-                       (backward-char 1)
-                       (skip-chars-backward "'`#^")
-                       (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
-                         (delete-region
-                          (point)
-                          (progn (skip-chars-backward " \t\n") (point)))
-                         (insert "\n"))))
-                    ((ignore-errors (up-list 1) t)
-                     (skip-syntax-forward ")")
-                     (delete-region
-                      (point)
-                      (progn (skip-chars-forward " \t\n") (point)))
-                     (newline))
-                    (t (goto-char (point-max)))))
+                   (let* ((sexp (sexp-at-point))
+                          (indent (or (and (memq sexp '(defun lambda)) 1)
+                                      (ignore-errors
+                                        (plist-get (symbol-plist sexp)
+                                                   'lisp-indent-function)))))
+                     (cond
+                      ((integerp indent)
+                       (forward-sexp)
+                       (dotimes (_ indent)
+                         (skip-chars-forward " \t\n")
+                         (let ((child (ppp--delete-last-newline
+                                       (ppp-sexp-to-string
+                                        (sexp-at-point)))))
+                           (delete-region (point) (progn (forward-sexp) (point)))
+                           (insert child)))
+                       (insert "\n"))
+                      ((ignore-errors (down-list) t)
+                       (save-excursion
+                         (backward-char)
+                         (skip-chars-backward "'`#^")
+                         (when (and (not (bobp)) (ppp--space-before-p))
+                           (ppp--delete-spaces-at-point)
+                           (insert "\n"))))
+                      ((ignore-errors (up-list) t)
+                       (skip-syntax-forward ")")
+                       (ppp--delete-spaces-at-point)
+                       (insert "\n"))
+                      (t (goto-char (point-max))))))
                  (goto-char (point-min))
                  (indent-sexp))))
       (princ str))))

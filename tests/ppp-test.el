@@ -67,6 +67,14 @@
  (when a
    (some-function a b))
  c)
+"))
+  (it "well format (4)"
+    (expect
+     (ppp-sexp-to-string '(lambda (a b) (message a b)))
+     :to-equal
+     "\
+(lambda (a b)
+  (message a b))
 ")))
 
 ;; (provide 'p-test)

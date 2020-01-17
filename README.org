@@ -53,8 +53,8 @@ And those ~*-to-string~ functions.
     :type 'boolean
     :group 'ppp)
 
-  (defcustom ppp-debug-buffer-template "*P Debug buffer - %s*"
-    "Buffer name for debugging."
+  (defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
+    "Buffer name for `ppp-debug'."
     :group 'ppp
     :type 'string)
 
@@ -64,7 +64,10 @@ And those ~*-to-string~ functions.
   Every minimul-earning-level variable initialized by this variable.
   You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
     :group 'ppp
-    :type 'symbol)
+    :type '(choice (const :tag ":debug"     :debug)
+                   (const :tag ":warning"   :warning)
+                   (const :tag ":error"     :error)
+                   (const :tag ":emergency" :emergency)))
 #+end_src
 
 * Information

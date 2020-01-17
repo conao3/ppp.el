@@ -138,7 +138,7 @@ See `ppp-plist' to get more info."
                      (delete-region
                       (point)
                       (progn (skip-chars-forward " \t\n") (point)))
-                     (newline))
+                     (insert "\n"))
                     (t (goto-char (point-max)))))
                  (goto-char (point-min))
                  (indent-sexp))))

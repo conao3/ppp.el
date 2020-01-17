@@ -32,7 +32,7 @@
 (require 'seq)
 
 (defgroup ppp nil
-  "Extended pretty printer for Emacs Lisp"
+  "Extended pretty printer for Emacs Lisp."
   :prefix "ppp-"
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
@@ -43,12 +43,12 @@
   :group 'ppp)
 
 (defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
-  "Buffer name for debugging."
+  "Buffer name for `ppp-debug'."
   :group 'ppp
   :type 'string)
 
 (defcustom ppp-minimum-warning-level-base :warning
-  "Minimum level for debugging.
+  "Minimum level for `ppp-debug'.
 It should be either :debug, :warning, :error, or :emergency.
 Every minimul-earning-level variable initialized by this variable.
 You can customize each variable like ppp-minimum-warning-level--{{pkg}}."

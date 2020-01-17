@@ -124,9 +124,9 @@ See `ppp-plist' to get more info."
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
                    (cond
-                    ((ignore-errors (down-list 1) t)
+                    ((ignore-errors (down-list) t)
                      (save-excursion
-                       (backward-char 1)
+                       (backward-char)
                        (skip-chars-backward "'`#^")
                        (when (and (not (bobp))
                                   (memq (char-before) '(?\s ?\t ?\n)))
@@ -134,7 +134,7 @@ See `ppp-plist' to get more info."
                           (point)
                           (progn (skip-chars-backward " \t\n") (point)))
                          (insert "\n"))))
-                    ((ignore-errors (up-list 1) t)
+                    ((ignore-errors (up-list) t)
                      (skip-syntax-forward ")")
                      (delete-region
                       (point)

@@ -57,8 +57,7 @@ See this example or eval this by ~C-j~ in ~*scratch*~ on your hand.
 #+end_src
 
 This ppp.el is return values via only ~princ~.
-If you want those, you can use ~with-output-to-string~.
-
+If you want those string, you can use ~with-output-to-string~.
 This is proper way in Lisp convention.
 
 (But we have prepareted ~*-to-string~ macros,
@@ -90,7 +89,7 @@ Below snippet is typical example ppp.el usage in ~*scratch~.
   "
 #+end_src
 
-And ppp.el have below functions so you can use proper function to fit your Lisp data structure.
+And ppp.el have below functions so if you can use proper function to fit your Lisp data structure.
 - ppp-sexp
 - ppp-macroexpand
 - ppp-macroexpand-all

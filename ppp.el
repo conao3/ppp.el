@@ -53,7 +53,10 @@ It should be either :debug, :warning, :error, or :emergency.
 Every minimul-earning-level variable initialized by this variable.
 You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
   :group 'ppp
-  :type 'symbol)
+  :type '(choice (const :tag ":debug"     :debug)
+                 (const :tag ":warning"   :warning)
+                 (const :tag ":error"     :error)
+                 (const :tag ":emergency" :emergency)))
 
 
 ;;; Helpers

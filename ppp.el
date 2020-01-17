@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; License: AGPL-3.0
@@ -118,70 +118,66 @@ See `ppp-plist' to get more info."
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
-  (let ((str (with-ppp--working-buffer form
-               ;; `pp-buffer'
-               (while (not (eobp))
-                 ;; (message "%06d" (- (point-max) (point)))
-                 (cond
-                  ((ignore-errors (down-list 1) t)
-                   (save-excursion
-                     (backward-char 1)
-                     (skip-chars-backward "'`#^")
-                     (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
-                       (delete-region
-                        (point)
-                        (progn (skip-chars-backward " \t\n") (point)))
-                       (insert "\n"))))
-                  ((ignore-errors (up-list 1) t)
-                   (skip-syntax-forward ")")
-                   (delete-region
-                    (point)
-                    (progn (skip-chars-forward " \t\n") (point)))
-                   (newline))
-                  (t (goto-char (point-max)))))
-               (goto-char (point-min))
-               (indent-sexp))))
-    (princ str))
-  nil)
+  (prog1 nil
+    (let ((str (with-ppp--working-buffer form
+                 ;; `pp-buffer'
+                 (while (not (eobp))
+                   ;; (message "%06d" (- (point-max) (point)))
+                   (cond
+                    ((ignore-errors (down-list 1) t)
+                     (save-excursion
+                       (backward-char 1)
+                       (skip-chars-backward "'`#^")
+                       (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+                         (delete-region
+                          (point)
+                          (progn (skip-chars-backward " \t\n") (point)))
+                         (insert "\n"))))
+                    ((ignore-errors (up-list 1) t)
+                     (skip-syntax-forward ")")
+                     (delete-region
+                      (point)
+                      (progn (skip-chars-forward " \t\n") (point)))
+                     (newline))
+                    (t (goto-char (point-max)))))
+                 (goto-char (point-min))
+                 (indent-sexp))))
+      (princ str))))
 
 ;;;###autoload
 (defmacro ppp-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro."
-  `(progn
-     (ppp-sexp (macroexpand-1 ',form))
-     nil))
+  `(ppp-sexp (macroexpand-1 ',form)))
 
 ;;;###autoload
 (defmacro ppp-macroexpand-all (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
-  `(progn
-     (ppp-sexp (macroexpand-all ',form))
-     nil))
+  `(ppp-sexp (macroexpand-all ',form)))
 
 ;;;###autoload
 (defun ppp-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
-  (let ((str (with-ppp--working-buffer form
-               (when (and form (listp form))
-                 (forward-char)
-                 (ignore-errors
-                   (while t (forward-sexp) (newline)))
-                 (delete-char -1)))))
-    (princ (concat str "\n")))
-  nil)
+  (prog1 nil
+    (let ((str (with-ppp--working-buffer form
+                 (when (and form (listp form))
+                   (forward-char)
+                   (ignore-errors
+                     (while t (forward-sexp) (newline)))
+                   (delete-char -1)))))
+      (princ (concat str "\n")))))
 
 ;;;###autoload
 (defun ppp-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
-  (let ((str (with-ppp--working-buffer form
-               (when (and form (listp form))
-                 (forward-char)
-                 (ignore-errors
-                   (while t (forward-sexp 2) (newline)))
-                 (delete-char -1)))))
-    (princ (concat str "\n")))
-  nil)
+  (prog1 nil
+    (let ((str (with-ppp--working-buffer form
+                 (when (and form (listp form))
+                   (forward-char)
+                   (ignore-errors
+                     (while t (forward-sexp 2) (newline)))
+                   (delete-char -1)))))
+      (princ (concat str "\n")))))
 
 (defun ppp--define-warning-level-symbol (sym pkg)
   "Define SYM as variable if not defined for PKG."

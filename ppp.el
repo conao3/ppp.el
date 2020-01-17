@@ -6,7 +6,6 @@
 ;; Version: 1.0.4
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
-;; License: AGPL-3.0
 ;; URL: https://github.com/conao3/ppp.el
 
 ;; This program is free software: you can redistribute it and/or modify

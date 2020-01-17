@@ -128,7 +128,8 @@ See `ppp-plist' to get more info."
                      (save-excursion
                        (backward-char 1)
                        (skip-chars-backward "'`#^")
-                       (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+                       (when (and (not (bobp))
+                                  (memq (char-before) '(?\s ?\t ?\n)))
                          (delete-region
                           (point)
                           (progn (skip-chars-backward " \t\n") (point)))

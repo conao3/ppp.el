@@ -122,6 +122,10 @@ See `ppp-plist' to get more info."
      (progn (skip-chars-backward spaces) (point))
      (progn (skip-chars-forward spaces) (point)))))
 
+(defun ppp--space-before-p ()
+  "Return non-nil if before point is spaces."
+  (memq (char-before) '(?\s ?\t ?\n)))
+
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
@@ -143,8 +147,7 @@ See `ppp-plist' to get more info."
                        (save-excursion
                          (backward-char)
                          (skip-chars-backward "'`#^")
-                         (when (and (not (bobp))
-                                    (memq (char-before) '(?\s ?\t ?\n)))
+                         (when (and (not (bobp)) (ppp--space-before-p))
                            (ppp--delete-spaces)
                            (insert "\n"))))
                       ((ignore-errors (up-list) t)

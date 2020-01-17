@@ -115,6 +115,13 @@ See `ppp-plist' to get more info."
 
 ;;; Functions
 
+(defun ppp--delete-spaces ()
+  "Delete spaces near point."
+  (let ((spaces " \t\n"))
+    (delete-region
+     (progn (skip-chars-backward spaces) (point))
+     (progn (skip-chars-forward spaces) (point)))))
+
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
@@ -138,15 +145,11 @@ See `ppp-plist' to get more info."
                          (skip-chars-backward "'`#^")
                          (when (and (not (bobp))
                                     (memq (char-before) '(?\s ?\t ?\n)))
-                           (delete-region
-                            (point)
-                            (progn (skip-chars-backward " \t\n") (point)))
+                           (ppp--delete-spaces)
                            (insert "\n"))))
                       ((ignore-errors (up-list) t)
                        (skip-syntax-forward ")")
-                       (delete-region
-                        (point)
-                        (progn (skip-chars-forward " \t\n") (point)))
+                       (ppp--delete-spaces)
                        (insert "\n"))
                       (t (goto-char (point-max))))))
                  (goto-char (point-min))

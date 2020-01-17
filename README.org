@@ -27,6 +27,78 @@
   - [[#special-thanks][Special Thanks]]
 
 * Description
+Extended pretty printer for Emacs Lisp.
+
+Builtin [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/pp.el][pp.el]] function ~princ~ and return its string.
+When I use these functions in ~*scratch*~, return value is redundant.
+See this example or eval this by ~C-j~ in ~*scratch*~ on your hand.
+
+#+begin_src emacs-lisp
+  (pp '(mapcar
+        (lambda (str)
+          (message str))
+        (buffer-list)))
+  (mapcar
+   (lambda
+     (str)
+     (message str))
+   (buffer-list))
+  "(mapcar
+   (lambda
+     (str)
+     (message str))
+   (buffer-list))
+  "
+
+  (pp '(:plist-key1 value1 :plist-key2 value2 :plist-key3 value3))
+  (:plist-key1 value1 :plist-key2 value2 :plist-key3 value3)
+  "(:plist-key1 value1 :plist-key2 value2 :plist-key3 value3)
+  "
+#+end_src
+
+This ppp.el is return values via only ~princ~.
+If you want those, you can use ~with-output-to-string~.
+
+This is proper way in Lisp convention.
+
+(But we have prepareted ~*-to-string~ macros,
+so you want formatted string, you can use those macros!)
+
+Below snippet is typical example ppp.el usage in ~*scratch~.
+
+#+begin_src emacs-lisp
+  (ppp-sexp '(mapcar
+              (lambda (str)
+                (message str))
+              (buffer-list)))
+  (mapcar
+   (lambda (str)
+     (message str))
+   (buffer-list))
+  nil
+
+  (ppp-plist '(:plist-key1 value1 :plist-key2 value2 :plist-key3 value3))
+  (:plist-key1 value1
+   :plist-key2 value2
+   :plist-key3 value3)
+  nil
+
+  (ppp-plist-to-string '(:plist-key1 value1 :plist-key2 value2 :plist-key3 value3))
+  "(:plist-key1 value1
+   :plist-key2 value2
+   :plist-key3 value3)
+  "
+#+end_src
+
+And ppp.el have below functions so you can use proper function to fit your Lisp data structure.
+- ppp-sexp
+- ppp-macroexpand
+- ppp-macroexpand-all
+- ppp-list
+- ppp-plist
+
+Additionaly, ppp.el output well format than pp.el in many cases.
+Please see ~lambda~ argument place in above example.
 
 * Install
 Below install snippet using [[https://github.com/conao3/leaf.el][leaf.el]]
@@ -36,7 +108,7 @@ Below install snippet using [[https://github.com/conao3/leaf.el][leaf.el]]
 #+end_src
 
 * Usage
-Just use below functions.
+Just use below functions/macros.
 - ppp-sexp
 - ppp-macroexpand
 - ppp-macroexpand-all
@@ -44,7 +116,7 @@ Just use below functions.
 - ppp-plist
 - ppp-debug
 
-And those ~*-to-string~ functions.
+And those ~*-to-string~ macros.
 
 * Customize
 #+begin_src emacs-lisp

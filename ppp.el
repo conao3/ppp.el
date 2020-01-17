@@ -123,24 +123,32 @@ See `ppp-plist' to get more info."
                  ;; `pp-buffer'
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
-                   (cond
-                    ((ignore-errors (down-list) t)
-                     (save-excursion
-                       (backward-char)
-                       (skip-chars-backward "'`#^")
-                       (when (and (not (bobp))
-                                  (memq (char-before) '(?\s ?\t ?\n)))
-                         (delete-region
-                          (point)
-                          (progn (skip-chars-backward " \t\n") (point)))
-                         (insert "\n"))))
-                    ((ignore-errors (up-list) t)
-                     (skip-syntax-forward ")")
-                     (delete-region
-                      (point)
-                      (progn (skip-chars-forward " \t\n") (point)))
-                     (insert "\n"))
-                    (t (goto-char (point-max)))))
+                   (let* ((sexp (sexp-at-point))
+                          (indent (or (and (memq sexp '(defun lambda)) 1)
+                                      (ignore-errors
+                                        (plist-get (symbol-plist sexp)
+                                                   'lisp-indent-function)))))
+                     (cond
+                      ((integerp indent)
+                       (forward-sexp (1+ indent))
+                       (insert "\n"))
+                      ((ignore-errors (down-list) t)
+                       (save-excursion
+                         (backward-char)
+                         (skip-chars-backward "'`#^")
+                         (when (and (not (bobp))
+                                    (memq (char-before) '(?\s ?\t ?\n)))
+                           (delete-region
+                            (point)
+                            (progn (skip-chars-backward " \t\n") (point)))
+                           (insert "\n"))))
+                      ((ignore-errors (up-list) t)
+                       (skip-syntax-forward ")")
+                       (delete-region
+                        (point)
+                        (progn (skip-chars-forward " \t\n") (point)))
+                       (insert "\n"))
+                      (t (goto-char (point-max))))))
                  (goto-char (point-min))
                  (indent-sexp))))
       (princ str))))

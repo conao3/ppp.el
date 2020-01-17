@@ -115,7 +115,7 @@ See `ppp-plist' to get more info."
 
 ;;; Functions
 
-(defun ppp--delete-spaces ()
+(defun ppp--delete-spaces-at-point ()
   "Delete spaces near point."
   (let ((spaces " \t\n"))
     (delete-region
@@ -148,11 +148,11 @@ See `ppp-plist' to get more info."
                          (backward-char)
                          (skip-chars-backward "'`#^")
                          (when (and (not (bobp)) (ppp--space-before-p))
-                           (ppp--delete-spaces)
+                           (ppp--delete-spaces-at-point)
                            (insert "\n"))))
                       ((ignore-errors (up-list) t)
                        (skip-syntax-forward ")")
-                       (ppp--delete-spaces)
+                       (ppp--delete-spaces-at-point)
                        (insert "\n"))
                       (t (goto-char (point-max))))))
                  (goto-char (point-min))

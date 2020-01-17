@@ -155,6 +155,10 @@ See `ppp-plist' to get more info."
      (progn (skip-chars-backward spaces) (point))
      (progn (skip-chars-forward spaces) (point)))))
 
+(defun ppp--delete-last-newline (str)
+  "Delete last newline character for STR."
+  (replace-regexp-in-string "\n$" "" str))
+
 (defun ppp--space-before-p ()
   "Return non-nil if before point is spaces."
   (memq (char-before) '(?\s ?\t ?\n)))
@@ -174,7 +178,14 @@ See `ppp-plist' to get more info."
                                                    'lisp-indent-function)))))
                      (cond
                       ((integerp indent)
-                       (forward-sexp (1+ indent))
+                       (forward-sexp)
+                       (dotimes (_ indent)
+                         (skip-chars-forward " \t\n")
+                         (let ((child (ppp--delete-last-newline
+                                       (ppp-sexp-to-string
+                                        (sexp-at-point)))))
+                           (delete-region (point) (progn (forward-sexp) (point)))
+                           (insert child)))
                        (insert "\n"))
                       ((ignore-errors (down-list) t)
                        (save-excursion

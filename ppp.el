@@ -71,7 +71,40 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
        (goto-char (point-min)))
      (progn ,@body)
      (delete-trailing-whitespace)
+     (while (re-search-forward "^ *)" nil t)
+       (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
+
+(defvar-local ppp-buffer-using nil
+  "If non-nil, curerntly using *ppp-debug* buffer.")
+
+(defmacro with-ppp--debug-working-buffer (form &rest body)
+  "Insert FORM, execute BODY, return `buffer-string'.
+Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
+  (declare (indent 1) (debug t))
+  `(let ((bufname "*ppp-debug*")
+         newbuf)
+     (with-current-buffer bufname
+       (when ppp-buffer-using
+         (setq newbuf (generate-new-buffer bufname))
+         (set-buffer newbuf))
+       (erase-buffer)
+       (unwind-protect
+           (let ((ppp-buffer-using t))
+             ;; see `with-ppp--working-buffer'
+             (lisp-mode-variables nil)
+             (set-syntax-table emacs-lisp-mode-syntax-table)
+             (let ((print-escape-newlines ppp-escape-newlines)
+                   (print-quoted t))
+               (prin1 ,form (current-buffer))
+               (goto-char (point-min)))
+             (progn ,@body)
+             (delete-trailing-whitespace)
+             (while (re-search-forward "^ *)" nil t)
+               (delete-region (line-end-position 0) (1- (point))))
+             (buffer-substring-no-properties (point-min) (point-max)))
+         (when newbuf
+           (kill-buffer newbuf))))))
 
 
 ;;; Macros

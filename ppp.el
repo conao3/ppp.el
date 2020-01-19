@@ -202,13 +202,15 @@ See `ppp-plist' to get more info."
                      (cond
                       ((integerp indent)
                        (forward-sexp)
-                       (dotimes (_ indent)
-                         (skip-chars-forward " \t\n")
-                         (let ((child (ppp--delete-last-newline
-                                       (ppp-sexp-to-string
-                                        (sexp-at-point)))))
-                           (delete-region (point) (progn (forward-sexp) (point)))
-                           (insert child)))
+                       (condition-case _
+                         (dotimes (_ indent)
+                           (skip-chars-forward " \t\n")
+                           (let ((child (ppp--delete-last-newline
+                                         (ppp-sexp-to-string
+                                          (sexp-at-point)))))
+                             (delete-region (point) (progn (forward-sexp) (point)))
+                             (insert child)))
+                         (scan-error nil))
                        (insert "\n"))
                       ((ignore-errors (down-list) t)
                        (save-excursion

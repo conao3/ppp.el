@@ -174,7 +174,8 @@ See `ppp-plist' to get more info."
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
                    (let* ((sexp (sexp-at-point))
-                          (indent (or (and (memq sexp '(defun lambda)) 1)
+                          (indent (or (and (memq sexp '(lambda)) 1)
+                                      (and (memq sexp '(closure)) 2)
                                       (ignore-errors
                                         (plist-get (symbol-plist sexp)
                                                    'lisp-indent-function)))))

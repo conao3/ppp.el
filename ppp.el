@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.0.9
+;; Version: 1.1.0
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -174,7 +174,7 @@ See `ppp-plist' to get more info."
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
                    (let* ((sexp (sexp-at-point))
-                          (indent (or (and (memq sexp '(lambda)) 1)
+                          (indent (or (and (memq sexp '(lambda condition-case)) 1)
                                       (and (memq sexp '(closure)) 2)
                                       (ignore-errors
                                         (plist-get (symbol-plist sexp)

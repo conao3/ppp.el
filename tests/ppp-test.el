@@ -75,6 +75,13 @@
      "\
 (lambda (a b)
   (message a b))
+"))
+  (it "no errors"
+    (expect
+     (ppp-sexp-to-string '(defcustom dummy-variable))
+     :to-equal
+     "\
+(defcustom dummy-variable)
 ")))
 
 ;; (provide 'p-test)

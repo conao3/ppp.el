@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -30,12 +30,28 @@
 
 (require 'warnings)
 (require 'seq)
+(require 'cl-lib)
 
 (defgroup ppp nil
   "Extended pretty printer for Emacs Lisp."
   :prefix "ppp-"
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
+
+(defcustom ppp-indent-spec '((1 . (lambda condition-case))
+                             (2 . (closure)))
+  "Special indent specification.
+Element at the top of the list takes precedence.
+
+Format:
+  FORMAT  := (SPEC*)
+  SPEC    := (LEVEL . SYMBOLS)
+  LEVEL   := <integer>
+  SYMBOLS := (<symbol>*)
+
+Duplicate LEVEL is accepted."
+  :group 'ppp
+  :type 'sexp)
 
 (defcustom ppp-escape-newlines t
   "Value of `print-escape-newlines' used by ppp-* functions."
@@ -174,9 +190,11 @@ See `ppp-plist' to get more info."
                  (while (not (eobp))
                    ;; (message "%06d" (- (point-max) (point)))
                    (let* ((sexp (sexp-at-point))
-                          (indent (or (and (memq sexp '(lambda condition-case)) 1)
-                                      (and (memq sexp '(closure)) 2)
-                                      (ignore-errors
+                          (indent (or (car
+                                       (cl-find-if
+                                        (lambda (elm) (memq sexp (cdr elm)))
+                                        ppp-indent-spec))
+                                      (when (symbolp sexp)
                                         (plist-get (symbol-plist sexp)
                                                    'lisp-indent-function)))))
                      (cond
@@ -267,7 +285,7 @@ Optional arguments LEVEL is pop level for backtrace."
   "Output debug message to `flylint-debug-buffer'.
 
 ARGS accepts (KEYWORD-ARGUMENTS... PKG FORMAT &rest FORMAT-ARGS).
- 
+
 Auto arguments:
   PKG is symbol.
   FORMAT and FORMAT-ARGS passed `format'.

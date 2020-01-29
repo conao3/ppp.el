@@ -95,6 +95,8 @@ And ppp.el have below functions so if you can use proper function to fit your Li
 - ppp-macroexpand-all
 - ppp-list
 - ppp-plist
+- ppp-symbol-function
+- ppp-symbol-value
 
 Additionaly, ppp.el output well format than pp.el in many cases.
 Please see ~lambda~ argument place in above example.
@@ -113,6 +115,8 @@ Just use below functions/macros.
 - ppp-macroexpand-all
 - ppp-list
 - ppp-plist
+- ppp-symbol-function
+- ppp-symbol-value
 - ppp-debug
 
 And those ~*-to-string~ macros.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.3
+;; Version: 1.1.4
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -165,6 +165,21 @@ See `ppp-plist' to get more info."
   `(with-output-to-string
      (ppp-plist ,form)))
 
+;;;###autoload
+(defmacro ppp-symbol-function-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for list.
+See `ppp-symbol-funciton' to get more info."
+  `(with-output-to-string
+     (ppp-symbol-funciton ,form)))
+
+;;;###autoload
+(defmacro ppp-symbol-value-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for plist.
+See `ppp-symbol-value' to get more info."
+  `(with-output-to-string
+     (ppp-symbol-value ,form)))
+
+
 
 ;;; Functions
 
@@ -262,6 +277,18 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
                      (while t (forward-sexp 2) (newline)))
                    (delete-char -1)))))
       (princ (concat str "\n")))))
+
+;;;###autoload
+(defmacro ppp-symbol-funciton (fn)
+  "Output `symbol-function' for FN."
+  (let ((fn* (if (symbolp fn) fn (eval fn))))
+    `(ppp-sexp (symbol-function ',fn*))))
+
+;;;###autoload
+(defmacro ppp-symbol-value (var)
+  "Output `symbol-value' for FN."
+  (let ((fn* (if (symbolp var) var (eval var))))
+    `(ppp-sexp (symbol-value ',fn*))))
 
 (defun ppp--define-warning-level-symbol (sym pkg)
   "Define SYM as variable if not defined for PKG."

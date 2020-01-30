@@ -278,7 +278,7 @@ It should be either :debug, :warning, :error, or :emergency." pkg)
 Optional arguments LEVEL is pop level for backtrace."
   (let ((trace-str (format "(%s)" (with-output-to-string (backtrace))))
         trace)
-    (setq trace (cdr (read trace-str)))   ; drop `backtrace' symbol
+    (setq trace (cdr (ignore-errors (read trace-str))))   ; drop `backtrace' symbol
     (let (tmp)
       (dotimes (_i (or level 1))
         (while (listp (setq tmp (pop trace)))))

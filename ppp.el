@@ -105,10 +105,9 @@ Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
   (declare (indent 1) (debug t))
   `(let ((bufname "*ppp-debug*")
          newbuf)
-     (with-current-buffer bufname
-       (when ppp-buffer-using
-         (setq newbuf (generate-new-buffer bufname))
-         (set-buffer newbuf))
+     (with-current-buffer (if ppp-buffer-using
+                              (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
+                            (get-buffer-create bufname))
        (erase-buffer)
        (unwind-protect
            (let ((ppp-buffer-using t))

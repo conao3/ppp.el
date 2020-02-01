@@ -41,7 +41,8 @@
 (defcustom ppp-indent-spec
   '((0 . (_ unwind-protect))
     (1 . (_ lambda if condition-case not null car cdr goto-char 1+ 1-))
-    (2 . (_ closure defcustom)))
+    (2 . (_ closure defcustom))
+    (3 . (_ macro)))
   "Special indent specification.
 Element at the top of the list takes precedence.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.5
+;; Version: 1.1.6
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -41,7 +41,8 @@
 (defcustom ppp-indent-spec
   '((0 . (_ unwind-protect))
     (1 . (_ lambda if condition-case not null car cdr goto-char 1+ 1-))
-    (2 . (_ closure defcustom)))
+    (2 . (_ closure defcustom))
+    (3 . (_ macro)))
   "Special indent specification.
 Element at the top of the list takes precedence.
 

@@ -99,7 +99,7 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
 (defvar-local ppp-buffer-using nil
   "If non-nil, curerntly using *ppp-debug* buffer.")
 
-(defmacro with-ppp--debug-working-buffer (form &rest body)
+(defmacro with-ppp--working-buffer-debug (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'.
 Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
   (declare (indent 1) (debug t))

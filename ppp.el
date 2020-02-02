@@ -106,9 +106,10 @@ Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
   (declare (indent 1) (debug t))
   `(let ((bufname "*ppp-debug*")
          newbuf)
-     (with-current-buffer (if ppp-buffer-using
-                              (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
-                            (get-buffer-create bufname))
+     (with-current-buffer
+         (if ppp-buffer-using
+             (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
+           (get-buffer-create bufname))
        (erase-buffer)
        (unwind-protect
            (let ((ppp-buffer-using t))
@@ -168,14 +169,14 @@ See `ppp-plist' to get more info."
 
 ;;;###autoload
 (defmacro ppp-symbol-function-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for list.
+  "Output the pretty-printed representation of FORM suitable for symbol-function.
 See `ppp-symbol-funciton' to get more info."
   `(with-output-to-string
-     (ppp-symbol-funciton ,form)))
+     (ppp-symbol-function ,form)))
 
 ;;;###autoload
 (defmacro ppp-symbol-value-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for plist.
+  "Output the pretty-printed representation of FORM suitable for symbol-value.
 See `ppp-symbol-value' to get more info."
   `(with-output-to-string
      (ppp-symbol-value ,form)))
@@ -281,16 +282,16 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
       (princ (concat str "\n")))))
 
 ;;;###autoload
-(defmacro ppp-symbol-funciton (fn)
-  "Output `symbol-function' for FN."
-  (let ((fn* (if (symbolp fn) fn (eval fn))))
-    `(ppp-sexp (symbol-function ',fn*))))
+(defmacro ppp-symbol-function (form)
+  "Output `symbol-function' for FORM."
+  (let ((form* (if (symbolp form) form (eval form))))
+    `(ppp-sexp (symbol-function ',form*))))
 
 ;;;###autoload
-(defmacro ppp-symbol-value (var)
-  "Output `symbol-value' for FN."
-  (let ((fn* (if (symbolp var) var (eval var))))
-    `(ppp-sexp (symbol-value ',fn*))))
+(defmacro ppp-symbol-value (form)
+  "Output `symbol-value' for FORM."
+  (let ((form* (if (symbolp form) form (eval form))))
+    `(ppp-sexp (symbol-value ',form*))))
 
 (defun ppp--define-warning-level-symbol (sym pkg)
   "Define SYM as variable if not defined for PKG."

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.6
+;; Version: 1.1.7
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -99,16 +99,15 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
 (defvar-local ppp-buffer-using nil
   "If non-nil, curerntly using *ppp-debug* buffer.")
 
-(defmacro with-ppp--debug-working-buffer (form &rest body)
+(defmacro with-ppp--working-buffer-debug (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'.
 Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
   (declare (indent 1) (debug t))
   `(let ((bufname "*ppp-debug*")
          newbuf)
-     (with-current-buffer bufname
-       (when ppp-buffer-using
-         (setq newbuf (generate-new-buffer bufname))
-         (set-buffer newbuf))
+     (with-current-buffer (if ppp-buffer-using
+                              (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
+                            (get-buffer-create bufname))
        (erase-buffer)
        (unwind-protect
            (let ((ppp-buffer-using t))
@@ -218,15 +217,16 @@ See `ppp-symbol-value' to get more info."
                      (cond
                       ((integerp indent)
                        (forward-sexp)
-                       (condition-case _
-                         (dotimes (_ indent)
-                           (skip-chars-forward " \t\n")
-                           (let ((child (ppp--delete-last-newline
-                                         (ppp-sexp-to-string
-                                          (sexp-at-point)))))
-                             (delete-region (point) (progn (forward-sexp) (point)))
-                             (insert child)))
-                         (scan-error nil))
+                       (when (not (eobp))
+                         (condition-case _
+                             (dotimes (_ indent)
+                               (skip-chars-forward " \t\n")
+                               (let ((child (ppp--delete-last-newline
+                                             (ppp-sexp-to-string
+                                              (sexp-at-point)))))
+                                 (delete-region (point) (progn (forward-sexp) (point)))
+                                 (insert child)))
+                           (scan-error nil)))
                        (insert "\n"))
                       ((ignore-errors (down-list) t)
                        (save-excursion

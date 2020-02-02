@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.7
+;; Version: 1.1.8
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -40,7 +40,8 @@
 
 (defcustom ppp-indent-spec
   '((0 . (_ unwind-protect))
-    (1 . (_ lambda if condition-case not null car cdr goto-char 1+ 1-))
+    (1 . (_ lambda if condition-case not null car cdr 1+ 1-
+            goto-char goto-line))
     (2 . (_ closure defcustom))
     (3 . (_ macro)))
   "Special indent specification.

@@ -84,6 +84,15 @@
 (defcustom dummy-variable)
 ")))
 
+(describe "Solved"
+  (it "issue#38"
+    (expect
+     (ppp-sexp-to-string 'closure)
+     :to-equal
+     "\
+closure
+")))
+
 ;; (provide 'p-test)
 
 ;; Local Variables:

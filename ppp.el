@@ -217,15 +217,16 @@ See `ppp-symbol-value' to get more info."
                      (cond
                       ((integerp indent)
                        (forward-sexp)
-                       (condition-case _
-                         (dotimes (_ indent)
-                           (skip-chars-forward " \t\n")
-                           (let ((child (ppp--delete-last-newline
-                                         (ppp-sexp-to-string
-                                          (sexp-at-point)))))
-                             (delete-region (point) (progn (forward-sexp) (point)))
-                             (insert child)))
-                         (scan-error nil))
+                       (when (not (eobp))
+                         (condition-case _
+                             (dotimes (_ indent)
+                               (skip-chars-forward " \t\n")
+                               (let ((child (ppp--delete-last-newline
+                                             (ppp-sexp-to-string
+                                              (sexp-at-point)))))
+                                 (delete-region (point) (progn (forward-sexp) (point)))
+                                 (insert child)))
+                           (scan-error nil)))
                        (insert "\n"))
                       ((ignore-errors (down-list) t)
                        (save-excursion

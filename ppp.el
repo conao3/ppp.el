@@ -89,9 +89,10 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
            (print-quoted t))
-       (prin1 ,form (current-buffer))
-       (goto-char (point-min)))
-     (progn ,@body)
+       (prin1 ,form (current-buffer)))
+     (goto-char (point-min))
+     (save-excursion
+       ,@body)
      (delete-trailing-whitespace)
      (while (re-search-forward "^ *)" nil t)
        (delete-region (line-end-position 0) (1- (point))))

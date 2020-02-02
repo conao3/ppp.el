@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.1.9
+;; Version: 1.2.0
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -201,49 +201,62 @@ See `ppp-symbol-value' to get more info."
   (memq (char-before) '(?\s ?\t ?\n)))
 
 ;;;###autoload
+(defun ppp-buffer ()
+  "Prettify the current buffer with printed representation of a Lisp object.
+ppp version of `pp-buffer'."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      ;; (message "%06d" (- (point-max) (point)))
+      (let* ((sexp (sexp-at-point))
+             (indent (or (car
+                          (cl-find-if
+                           (lambda (elm) (memq sexp (cdr elm)))
+                           ppp-indent-spec))
+                         (when (symbolp sexp)
+                           (plist-get (symbol-plist sexp)
+                                      'lisp-indent-function)))))
+        (cond
+         ((integerp indent)
+          (forward-sexp)
+          (when (not (eobp))
+            (condition-case _
+                (dotimes (_ indent)
+                  (skip-chars-forward " \t\n")
+                  (let ((child (ppp--delete-last-newline
+                                (ppp-sexp-to-string
+                                 (sexp-at-point)))))
+                    (delete-region (point) (progn (forward-sexp) (point)))
+                    (insert child)))
+              (scan-error nil)))
+          (insert "\n"))
+         ((ignore-errors (down-list) t)
+          (save-excursion
+            (backward-char)
+            (skip-chars-backward "'`#^")
+            (when (and (not (bobp)) (ppp--space-before-p))
+              (ppp--delete-spaces-at-point)
+              (insert "\n"))))
+         ((ignore-errors (up-list) t)
+          (skip-syntax-forward ")")
+          (ppp--delete-spaces-at-point)
+          (insert "\n"))
+         (t (goto-char (point-max)))))))
+  (let ((inhibit-message t))
+    (indent-region (point-min) (point-max)))
+
+  ;; with-ppp-working-buffer post process (could use ppp-buffer only)
+  (delete-trailing-whitespace)
+  (while (re-search-forward "^ *)" nil t)
+    (delete-region (line-end-position 0) (1- (point)))))
+
+;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (prog1 nil
     (let ((str (with-ppp--working-buffer form
-                 ;; `pp-buffer'
-                 (while (not (eobp))
-                   ;; (message "%06d" (- (point-max) (point)))
-                   (let* ((sexp (sexp-at-point))
-                          (indent (or (car
-                                       (cl-find-if
-                                        (lambda (elm) (memq sexp (cdr elm)))
-                                        ppp-indent-spec))
-                                      (when (symbolp sexp)
-                                        (plist-get (symbol-plist sexp)
-                                                   'lisp-indent-function)))))
-                     (cond
-                      ((integerp indent)
-                       (forward-sexp)
-                       (when (not (eobp))
-                         (condition-case _
-                             (dotimes (_ indent)
-                               (skip-chars-forward " \t\n")
-                               (let ((child (ppp--delete-last-newline
-                                             (ppp-sexp-to-string
-                                              (sexp-at-point)))))
-                                 (delete-region (point) (progn (forward-sexp) (point)))
-                                 (insert child)))
-                           (scan-error nil)))
-                       (insert "\n"))
-                      ((ignore-errors (down-list) t)
-                       (save-excursion
-                         (backward-char)
-                         (skip-chars-backward "'`#^")
-                         (when (and (not (bobp)) (ppp--space-before-p))
-                           (ppp--delete-spaces-at-point)
-                           (insert "\n"))))
-                      ((ignore-errors (up-list) t)
-                       (skip-syntax-forward ")")
-                       (ppp--delete-spaces-at-point)
-                       (insert "\n"))
-                      (t (goto-char (point-max))))))
-                 (goto-char (point-min))
-                 (indent-sexp))))
+                 (ppp-buffer))))
       (princ str))))
 
 ;;;###autoload

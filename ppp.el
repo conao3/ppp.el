@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -89,9 +89,10 @@ You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
            (print-quoted t))
-       (prin1 ,form (current-buffer))
-       (goto-char (point-min)))
-     (progn ,@body)
+       (prin1 ,form (current-buffer)))
+     (goto-char (point-min))
+     (save-excursion
+       ,@body)
      (delete-trailing-whitespace)
      (while (re-search-forward "^ *)" nil t)
        (delete-region (line-end-position 0) (1- (point))))

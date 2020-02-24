@@ -306,6 +306,17 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
   (let ((form* (if (symbolp form) form (eval form))))
     `(ppp-sexp (symbol-value ',form*))))
 
+;;;###autoload
+(defun ppp-alist-to-plist (alist)
+  "Convert ALIST to plist."
+  (mapcan
+   (lambda (elm)
+     (let ((keyname (prin1-to-string (car elm))))
+       (list (intern
+              (concat (unless (string-prefix-p ":" keyname) ":") keyname))
+             (cdr elm))))
+   alist))
+
 (defun ppp--define-warning-level-symbol (sym pkg)
   "Define SYM as variable if not defined for PKG."
   (unless (boundp sym)

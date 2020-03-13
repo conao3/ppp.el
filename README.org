@@ -115,6 +115,7 @@ Just use below functions/macros.
 - ppp-macroexpand-all
 - ppp-list
 - ppp-plist
+- ppp-alist
 - ppp-symbol-function
 - ppp-symbol-value
 - ppp-debug

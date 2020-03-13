@@ -169,6 +169,13 @@ See `ppp-plist' to get more info."
      (ppp-plist ,form)))
 
 ;;;###autoload
+(defmacro ppp-alist-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for alist.
+See `ppp-plist' to get more info."
+  `(with-output-to-string
+     (ppp-alist ,form)))
+
+;;;###autoload
 (defmacro ppp-symbol-function-to-string (form)
   "Output the pretty-printed representation of FORM suitable for symbol-function.
 See `ppp-symbol-funciton' to get more info."
@@ -294,6 +301,12 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
                      (while t (forward-sexp 2) (newline)))
                    (delete-char -1)))))
       (princ (concat str "\n")))))
+
+;;;###autoload
+(defun ppp-alist (form)
+  "Output the pretty-printed representation of FORM suitable for alist."
+  (prog1 nil
+    (ppp-plist (ppp-alist-to-plist form))))
 
 ;;;###autoload
 (defmacro ppp-symbol-function (form)

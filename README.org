@@ -134,16 +134,13 @@ And those ~*-to-string~ macros.
     :group 'ppp
     :type 'string)
 
-  (defcustom ppp-minimum-warning-level-base :warning
-    "Minimum level for debugging.
-  It should be either :debug, :warning, :error, or :emergency.
-  Every minimul-earning-level variable initialized by this variable.
-  You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
+  (defcustom ppp-minimum-warning-level-alist '((t . :warning))
+    "Minimum level for `ppp-debug'.
+  The key is package symbol.
+  The value should be either :debug, :warning, :error, or :emergency.
+  The value its key is t, is default minimum-warning-level value."
     :group 'ppp
-    :type '(choice (const :tag ":debug"     :debug)
-                   (const :tag ":warning"   :warning)
-                   (const :tag ":error"     :error)
-                   (const :tag ":emergency" :emergency)))
+    :type 'sexp)
 #+end_src
 
 * Information
@@ -198,6 +195,12 @@ Below operation flow is recommended.
 #+end_src
 
 ** Migration
+*** ppp v1.0 to ppp v2.0
+**** Define ppp-minimum-warning-level-alist instead of ppp-minimum-warning-level-base
+Please use ~ppp-minimum-warning-level-alist~ instead of ~ppp-minimum-warning-level-base~.
+
+Setting the default warning level and declaring new variables for each package didn't work well with the Elisp byte compiler.
+The new method uses alist to manage alert levels for each package, so you can manage them in a more familiar and convenient way.
 
 ** License
 #+begin_example

@@ -331,15 +331,13 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
              (cdr elm))))
    alist))
 
-(defun ppp--define-warning-level-symbol (sym pkg)
+(defmacro ppp--define-warning-level-symbol (sym pkg)
   "Define SYM as variable if not defined for PKG."
-  (unless (boundp sym)
-    (eval
-     `(defcustom ,sym ppp-minimum-warning-level-base
-        ,(format "Minimum level for debugging %s.
+  `(defcustom ,sym ppp-minimum-warning-level-base
+     ,(format "Minimum level for debugging %s.
 It should be either :debug, :warning, :error, or :emergency." pkg)
-        :group 'ppp
-        :type 'symbol))))
+     :group 'ppp
+     :type 'symbol))
 
 (defun ppp--get-caller (&optional level)
   "Get caller function and arguments from backtrace.
@@ -402,8 +400,8 @@ Note:
            (break           (alist-get :break prop))
            (min-level       (intern
                              (format "ppp-minimum-warning-level--%s" pkg))))
-      (ppp--define-warning-level-symbol min-level pkg)
       `(with-current-buffer (get-buffer-create ,buffer)
+         (ppp--define-warning-level-symbol ,min-level ,pkg)
          (special-mode)
          (emacs-lisp-mode)
          (when (<= (warning-numeric-level ,min-level)

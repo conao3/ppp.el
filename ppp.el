@@ -67,16 +67,13 @@ Duplicate LEVEL is accepted."
   :group 'ppp
   :type 'string)
 
-(defcustom ppp-minimum-warning-level-base :warning
+(defcustom ppp-minimum-warning-level-alist '((t . :warning))
   "Minimum level for `ppp-debug'.
-It should be either :debug, :warning, :error, or :emergency.
-Every minimul-earning-level variable initialized by this variable.
-You can customize each variable like ppp-minimum-warning-level--{{pkg}}."
+The key is package symbol.
+The value should be either :debug, :warning, :error, or :emergency.
+The value its key is t, is default minimum-warning-level value."
   :group 'ppp
-  :type '(choice (const :tag ":debug"     :debug)
-                 (const :tag ":warning"   :warning)
-                 (const :tag ":error"     :error)
-                 (const :tag ":emergency" :emergency)))
+  :type 'sexp)
 
 
 ;;; Helpers
@@ -331,14 +328,6 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
              (cdr elm))))
    alist))
 
-(defmacro ppp--define-warning-level-symbol (sym pkg)
-  "Define SYM as variable if not defined for PKG."
-  `(defcustom ,sym ppp-minimum-warning-level-base
-     ,(format "Minimum level for debugging %s.
-It should be either :debug, :warning, :error, or :emergency." pkg)
-     :group 'ppp
-     :type 'symbol))
-
 (defun ppp--get-caller (&optional level)
   "Get caller function and arguments from backtrace.
 Optional arguments LEVEL is pop level for backtrace."
@@ -397,14 +386,13 @@ Note:
            (buffer          (or (alist-get :buffer prop)
                                 (format ppp-debug-buffer-template pkg)))
            (popup           (alist-get :popup prop))
-           (break           (alist-get :break prop))
-           (min-level       (intern
-                             (format "ppp-minimum-warning-level--%s" pkg))))
+           (break           (alist-get :break prop)))
       `(with-current-buffer (get-buffer-create ,buffer)
-         (ppp--define-warning-level-symbol ,min-level ,pkg)
          (special-mode)
          (emacs-lisp-mode)
-         (when (<= (warning-numeric-level ,min-level)
+         (when (<= (warning-numeric-level
+                    ,(alist-get pkg ppp-minimum-warning-level-alist
+                                (alist-get t ppp-minimum-warning-level-alist)))
                    (warning-numeric-level ,level))
            (prog1 t
              (let ((inhibit-read-only t)

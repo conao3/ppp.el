@@ -239,18 +239,18 @@ See `ppp-plist' to get more info."
      (ppp-alist ,form)))
 
 ;;;###autoload
-(defmacro ppp-symbol-function-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for symbol-function.
+(defmacro ppp-symbol-function-to-string (symbol)
+  "Output the pretty-printed representation of SYMBOL `symbol-function'.
 See `ppp-symbol-funciton' to get more info."
   `(with-output-to-string
-     (ppp-symbol-function ,form)))
+     (ppp-symbol-function ,symbol)))
 
 ;;;###autoload
-(defmacro ppp-symbol-value-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for symbol-value.
+(defmacro ppp-symbol-value-to-string (symbol)
+  "Output the pretty-printed representation of SYMBOL `symbol-value'.
 See `ppp-symbol-value' to get more info."
   `(with-output-to-string
-     (ppp-symbol-value ,form)))
+     (ppp-symbol-value ,symbol)))
 
 
 ;;; Functions

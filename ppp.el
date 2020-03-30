@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.0.3
+;; Version: 2.0.4
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -78,6 +78,24 @@ The value its key is t, is default minimum-warning-level value."
 
 ;;; Helpers
 
+(defvar-local ppp-buffer-using nil
+  "If non-nil, curerntly using *ppp-debug* buffer.")
+
+(defun ppp--delete-spaces-at-point ()
+  "Delete spaces near point."
+  (let ((spaces " \t\n"))
+    (delete-region
+     (progn (skip-chars-backward spaces) (point))
+     (progn (skip-chars-forward spaces) (point)))))
+
+(defun ppp--delete-last-newline (str)
+  "Delete last newline character for STR."
+  (replace-regexp-in-string "\n$" "" str))
+
+(defun ppp--space-before-p ()
+  "Return non-nil if before point is spaces."
+  (memq (char-before) '(?\s ?\t ?\n)))
+
 (defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
   (declare (indent 1) (debug t))
@@ -94,9 +112,6 @@ The value its key is t, is default minimum-warning-level value."
      (while (re-search-forward "^ *)" nil t)
        (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
-
-(defvar-local ppp-buffer-using nil
-  "If non-nil, curerntly using *ppp-debug* buffer.")
 
 (defmacro with-ppp--working-buffer-debug (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'.
@@ -125,84 +140,6 @@ Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
              (buffer-substring-no-properties (point-min) (point-max)))
          (when newbuf
            (kill-buffer newbuf))))))
-
-
-;;; Macros
-
-;;;###autoload
-(defmacro ppp-sexp-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for objects.
-See `ppp-sexp' to get more info."
-  `(with-output-to-string
-     (ppp-sexp ,form)))
-
-;;;###autoload
-(defmacro ppp-macroexpand-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for macro.
-See `ppp-macroexpand' to get more info."
-  `(with-output-to-string
-     (ppp-macroexpand ,form)))
-
-;;;###autoload
-(defmacro ppp-macroexpand-all-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for macro.
-Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
-See `ppp-macroexpand-all' to get more info."
-  `(with-output-to-string
-     (ppp-macroexpand-all ,form)))
-
-;;;###autoload
-(defmacro ppp-list-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for list.
-See `ppp-list' to get more info."
-  `(with-output-to-string
-     (ppp-list ,form)))
-
-;;;###autoload
-(defmacro ppp-plist-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for plist.
-See `ppp-plist' to get more info."
-  `(with-output-to-string
-     (ppp-plist ,form)))
-
-;;;###autoload
-(defmacro ppp-alist-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for alist.
-See `ppp-plist' to get more info."
-  `(with-output-to-string
-     (ppp-alist ,form)))
-
-;;;###autoload
-(defmacro ppp-symbol-function-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for symbol-function.
-See `ppp-symbol-funciton' to get more info."
-  `(with-output-to-string
-     (ppp-symbol-function ,form)))
-
-;;;###autoload
-(defmacro ppp-symbol-value-to-string (form)
-  "Output the pretty-printed representation of FORM suitable for symbol-value.
-See `ppp-symbol-value' to get more info."
-  `(with-output-to-string
-     (ppp-symbol-value ,form)))
-
-
-;;; Functions
-
-(defun ppp--delete-spaces-at-point ()
-  "Delete spaces near point."
-  (let ((spaces " \t\n"))
-    (delete-region
-     (progn (skip-chars-backward spaces) (point))
-     (progn (skip-chars-forward spaces) (point)))))
-
-(defun ppp--delete-last-newline (str)
-  "Delete last newline character for STR."
-  (replace-regexp-in-string "\n$" "" str))
-
-(defun ppp--space-before-p ()
-  "Return non-nil if before point is spaces."
-  (memq (char-before) '(?\s ?\t ?\n)))
 
 ;;;###autoload
 (defun ppp-buffer ()
@@ -254,6 +191,69 @@ ppp version of `pp-buffer'."
   (delete-trailing-whitespace)
   (while (re-search-forward "^ *)" nil t)
     (delete-region (line-end-position 0) (1- (point)))))
+
+
+;;; Macros
+
+;;;###autoload
+(defmacro ppp-sexp-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for objects.
+See `ppp-sexp' to get more info."
+  `(with-output-to-string
+     (ppp-sexp ,form)))
+
+;;;###autoload
+(defmacro ppp-macroexpand-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for macro.
+See `ppp-macroexpand' to get more info."
+  `(with-output-to-string
+     (ppp-macroexpand ,form)))
+
+;;;###autoload
+(defmacro ppp-macroexpand-all-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for macro.
+Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
+See `ppp-macroexpand-all' to get more info."
+  `(with-output-to-string
+     (ppp-macroexpand-all ,form)))
+
+;;;###autoload
+(defmacro ppp-list-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for list.
+See `ppp-list' to get more info."
+  `(with-output-to-string
+     (ppp-list ,form)))
+
+;;;###autoload
+(defmacro ppp-plist-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for plist.
+See `ppp-plist' to get more info."
+  `(with-output-to-string
+     (ppp-plist ,form)))
+
+;;;###autoload
+(defmacro ppp-alist-to-string (form)
+  "Output the pretty-printed representation of FORM suitable for alist.
+See `ppp-plist' to get more info."
+  `(with-output-to-string
+     (ppp-alist ,form)))
+
+;;;###autoload
+(defmacro ppp-symbol-function-to-string (symbol)
+  "Output the pretty-printed representation of SYMBOL `symbol-function'.
+See `ppp-symbol-funciton' to get more info."
+  `(with-output-to-string
+     (ppp-symbol-function ,symbol)))
+
+;;;###autoload
+(defmacro ppp-symbol-value-to-string (symbol)
+  "Output the pretty-printed representation of SYMBOL `symbol-value'.
+See `ppp-symbol-value' to get more info."
+  `(with-output-to-string
+     (ppp-symbol-value ,symbol)))
+
+
+;;; Functions
 
 ;;;###autoload
 (defun ppp-sexp (form)

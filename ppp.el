@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.0.4
+;; Version: 2.0.5
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -193,126 +193,119 @@ ppp version of `pp-buffer'."
     (delete-region (line-end-position 0) (1- (point)))))
 
 
-;;; Macros
+;;; String functions
 
 ;;;###autoload
-(defmacro ppp-sexp-to-string (form)
+(defun ppp-sexp-to-string (form)
   "Output the pretty-printed representation of FORM suitable for objects.
 See `ppp-sexp' to get more info."
-  `(with-output-to-string
-     (ppp-sexp ,form)))
+  (with-ppp--working-buffer form
+    (ppp-buffer)))
 
 ;;;###autoload
 (defmacro ppp-macroexpand-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 See `ppp-macroexpand' to get more info."
-  `(with-output-to-string
-     (ppp-macroexpand ,form)))
+  `(ppp-sexp-to-string (macroexpand-1 ',form)))
 
 ;;;###autoload
 (defmacro ppp-macroexpand-all-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
 See `ppp-macroexpand-all' to get more info."
-  `(with-output-to-string
-     (ppp-macroexpand-all ,form)))
+  `(ppp-sexp-to-string (macroexpand-all ',form)))
 
 ;;;###autoload
-(defmacro ppp-list-to-string (form)
+(defun ppp-list-to-string (form)
   "Output the pretty-printed representation of FORM suitable for list.
 See `ppp-list' to get more info."
-  `(with-output-to-string
-     (ppp-list ,form)))
+  (with-ppp--working-buffer form
+    (when (and form (listp form))
+      (forward-char)
+      (ignore-errors
+        (while t (forward-sexp) (newline)))
+      (delete-char -1))))
 
 ;;;###autoload
-(defmacro ppp-plist-to-string (form)
+(defun ppp-plist-to-string (form)
   "Output the pretty-printed representation of FORM suitable for plist.
 See `ppp-plist' to get more info."
-  `(with-output-to-string
-     (ppp-plist ,form)))
+  (with-ppp--working-buffer form
+    (when (and form (listp form))
+      (forward-char)
+      (ignore-errors
+        (while t (forward-sexp 2) (newline)))
+      (delete-char -1))))
 
 ;;;###autoload
-(defmacro ppp-alist-to-string (form)
+(defun ppp-alist-to-string (form)
   "Output the pretty-printed representation of FORM suitable for alist.
 See `ppp-plist' to get more info."
-  `(with-output-to-string
-     (ppp-alist ,form)))
+  (ppp-plist-to-string (ppp-alist-to-plist form)))
 
 ;;;###autoload
-(defmacro ppp-symbol-function-to-string (symbol)
+(defun ppp-symbol-function-to-string (symbol)
   "Output the pretty-printed representation of SYMBOL `symbol-function'.
 See `ppp-symbol-funciton' to get more info."
-  `(with-output-to-string
-     (ppp-symbol-function ,symbol)))
+  (ppp-sexp-to-string (symbol-function symbol)))
 
 ;;;###autoload
-(defmacro ppp-symbol-value-to-string (symbol)
+(defun ppp-symbol-value-to-string (symbol)
   "Output the pretty-printed representation of SYMBOL `symbol-value'.
 See `ppp-symbol-value' to get more info."
-  `(with-output-to-string
-     (ppp-symbol-value ,symbol)))
+  (ppp-sexp-to-string (symbol-value symbol)))
 
 
-;;; Functions
+;;; Princ functions
 
 ;;;###autoload
 (defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects."
   (prog1 nil
-    (let ((str (with-ppp--working-buffer form
-                 (ppp-buffer))))
-      (princ str))))
+    (princ (ppp-sexp-to-string form))))
 
 ;;;###autoload
 (defmacro ppp-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro."
-  `(ppp-sexp (macroexpand-1 ',form)))
+  `(prog1 nil
+     (princ (ppp-macroexpand-to-string ,form))))
 
 ;;;###autoload
 (defmacro ppp-macroexpand-all (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
-  `(ppp-sexp (macroexpand-all ',form)))
+  `(prog1 nil
+     (princ (ppp-macroexpand-all-to-string ,form))))
 
 ;;;###autoload
 (defun ppp-list (form)
   "Output the pretty-printed representation of FORM suitable for list."
   (prog1 nil
-    (let ((str (with-ppp--working-buffer form
-                 (when (and form (listp form))
-                   (forward-char)
-                   (ignore-errors
-                     (while t (forward-sexp) (newline)))
-                   (delete-char -1)))))
-      (princ (concat str "\n")))))
+    (princ (concat (ppp-list-to-string form) "\n"))))
 
 ;;;###autoload
 (defun ppp-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist."
   (prog1 nil
-    (let ((str (with-ppp--working-buffer form
-                 (when (and form (listp form))
-                   (forward-char)
-                   (ignore-errors
-                     (while t (forward-sexp 2) (newline)))
-                   (delete-char -1)))))
-      (princ (concat str "\n")))))
+    (princ (concat (ppp-plist-to-string form) "\n"))))
 
 ;;;###autoload
 (defun ppp-alist (form)
   "Output the pretty-printed representation of FORM suitable for alist."
   (prog1 nil
-    (ppp-plist (ppp-alist-to-plist form))))
+    (princ (concat (ppp-alist-to-string form)))))
 
 ;;;###autoload
-(defun ppp-symbol-function (form)
-  "Output `symbol-function' for FORM."
-  (ppp-sexp (symbol-function form)))
+(defun ppp-symbol-function (symbol)
+  "Output `symbol-function' for SYMBOL."
+  (prog1 nil
+    (princ (ppp-sexp-to-string symbol))))
 
 ;;;###autoload
-(defun ppp-symbol-value (form)
-  "Output `symbol-value' for FORM."
-  (ppp-sexp (symbol-value form)))
+(defun ppp-symbol-value (symbol)
+  "Output `symbol-value' for SYMBOL."
+  (prog1 nil
+    (princ (ppp-symbol-value-to-string symbol))))
 
 ;;;###autoload
 (defun ppp-alist-to-plist (alist)

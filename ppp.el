@@ -305,16 +305,14 @@ Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
     (ppp-plist (ppp-alist-to-plist form))))
 
 ;;;###autoload
-(defmacro ppp-symbol-function (form)
+(defun ppp-symbol-function (form)
   "Output `symbol-function' for FORM."
-  (let ((form* (if (symbolp form) form (eval form))))
-    `(ppp-sexp (symbol-function ',form*))))
+  (ppp-sexp (symbol-function form)))
 
 ;;;###autoload
-(defmacro ppp-symbol-value (form)
+(defun ppp-symbol-value (form)
   "Output `symbol-value' for FORM."
-  (let ((form* (if (symbolp form) form (eval form))))
-    `(ppp-sexp (symbol-value ',form*))))
+  (ppp-sexp (symbol-value form)))
 
 ;;;###autoload
 (defun ppp-alist-to-plist (alist)

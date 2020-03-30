@@ -186,7 +186,6 @@ See `ppp-symbol-value' to get more info."
   `(with-output-to-string
      (ppp-symbol-value ,form)))
 
-
 
 ;;; Functions
 

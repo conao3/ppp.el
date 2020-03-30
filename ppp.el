@@ -250,7 +250,7 @@ ppp version of `pp-buffer'."
   (let ((inhibit-message t))
     (indent-region (point-min) (point-max)))
 
-  ;; with-ppp-working-buffer post process (could use ppp-buffer only)
+  ;; with-ppp-working-buffer post process (used ppp-buffer only)
   (delete-trailing-whitespace)
   (while (re-search-forward "^ *)" nil t)
     (delete-region (line-end-position 0) (1- (point)))))

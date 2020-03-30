@@ -20,6 +20,7 @@ all:
 REPO_USER    := conao3
 PACKAGE_NAME := ppp
 REPO_NAME    := ppp.el
+TESTFILE     := ppp-tests.el
 
 EMACS        ?= emacs
 ELS          := $(shell cask files)
@@ -63,8 +64,10 @@ help:
 
 ##############################
 
-test: $(ELS:%.el=%.elc)
-	cask exec buttercup -L .
+build: $(ELS:%.el=%.elc)
+
+test: build
+	cask exec $(EMACS) -Q --batch -l $(TESTFILE) -f cort-test-run
 
 clean:
 	rm -rf $(ELS:%.el=%.elc) .cask

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.0.0
+;; Version: 2.0.1
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -186,7 +186,6 @@ See `ppp-symbol-value' to get more info."
   `(with-output-to-string
      (ppp-symbol-value ,form)))
 
-
 
 ;;; Functions
 
@@ -251,7 +250,7 @@ ppp version of `pp-buffer'."
   (let ((inhibit-message t))
     (indent-region (point-min) (point-max)))
 
-  ;; with-ppp-working-buffer post process (could use ppp-buffer only)
+  ;; with-ppp-working-buffer post process (used ppp-buffer only)
   (delete-trailing-whitespace)
   (while (re-search-forward "^ *)" nil t)
     (delete-region (line-end-position 0) (1- (point)))))

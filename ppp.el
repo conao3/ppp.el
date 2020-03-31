@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.0.5
+;; Version: 2.0.6
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -80,6 +80,19 @@ The value its key is t, is default minimum-warning-level value."
 
 (defvar-local ppp-buffer-using nil
   "If non-nil, curerntly using *ppp-debug* buffer.")
+
+(defvar-local ppp-debug-ov nil
+  "Debug overlay.")
+
+(defun ppp-debug-ov-make ()
+  "Make debug overlay at PTR."
+  (unless ppp-debug-ov
+    (setq ppp-debug-ov (make-overlay (point) (1+ (point))))
+    (overlay-put ppp-debug-ov 'face '(t :background "red4"))))
+
+(defun ppp-debug-ov-move ()
+  "Move debug overlay at PTR."
+  (move-overlay ppp-debug-ov (point) (1+ (point))))
 
 (defun ppp--delete-spaces-at-point ()
   "Delete spaces near point."
@@ -191,6 +204,32 @@ ppp version of `pp-buffer'."
   (delete-trailing-whitespace)
   (while (re-search-forward "^ *)" nil t)
     (delete-region (line-end-position 0) (1- (point)))))
+
+(defun ppp-pp-buffer ()
+  "Prettify the current buffer with printed representation of a Lisp object.
+`pp-buffer' with debug marker."
+  (goto-char (point-min))
+  (while (not (eobp))
+    ;; (message "%06d" (- (point-max) (point)))
+    (cond
+     ((ignore-errors (down-list 1) t)
+      (save-excursion
+        (backward-char 1)
+        (skip-chars-backward "'`#^")
+        (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+          (delete-region
+           (point)
+           (progn (skip-chars-backward " \t\n") (point)))
+          (insert "\n"))))
+     ((ignore-errors (up-list 1) t)
+      (skip-syntax-forward ")")
+      (delete-region
+       (point)
+       (progn (skip-chars-forward " \t\n") (point)))
+      (insert ?\n))
+     (t (goto-char (point-max)))))
+  (goto-char (point-min))
+  (indent-sexp))
 
 
 ;;; String functions

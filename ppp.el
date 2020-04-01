@@ -234,9 +234,10 @@ ppp version of `pp-buffer'."
        ((integerp indent)
         (dotimes (_ (1+ indent))
           (ignore-errors
-            (forward-sexp)
-            (ppp-debug-ov-move)))
-        (ignore-errors (forward-sexp) (backward-sexp) (insert "\n")))
+            (forward-sexp) (ppp-debug-ov-move)))
+        (if (not (eobp))
+            (ignore-errors (forward-sexp) (backward-sexp) (insert "\n"))
+          (unless nolastnewline (insert "\n") (ppp-debug-ov-move))))
        ((ignore-errors (down-list 1) (ppp-debug-ov-move) t)
         (save-excursion
           (backward-char 1) (ppp-debug-ov-move 1)

@@ -254,16 +254,16 @@ closure")))
 (cort-deftest-with-equal ppp/ppp-leaf
   '(
     ((ppp-leaf-to-string
-      (leaf leaf
-        :load-path "~/.emacs.d/elpa-archive/leaf.el/"
-        :require t
-        :config
-        (leaf-init)
-        (when (some-function a b)
-          (some-function a b))
-        (some-function
-         (some-function a b)
-         (some-function a b)))
+      '(leaf leaf
+         :load-path "~/.emacs.d/elpa-archive/leaf.el/"
+         :require t
+         :config
+         (leaf-init)
+         (when (some-function a b)
+           (some-function a b))
+         (some-function
+          (some-function a b)
+          (some-function a b)))
       'nonewline)
      "\
 (leaf leaf
@@ -278,11 +278,11 @@ closure")))
    (some-function a b)))")
 
     ((ppp-leaf-to-string
-      (leaf color-moccur
-        :bind (("M-s O" . moccur)
-               (:isearch-mode-map
-                ("M-o" . isearch-moccur)
-                ("M-O" . isearch-moccur-all))))
+      '(leaf color-moccur
+         :bind (("M-s O" . moccur)
+                (:isearch-mode-map
+                 ("M-o" . isearch-moccur)
+                 ("M-O" . isearch-moccur-all))))
       'nonewline)
      "\
 (leaf color-moccur

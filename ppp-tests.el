@@ -47,6 +47,8 @@ Example:
 
 ;;; test definitions
 
+(setq-default indent-tabs-mode nil)
+
 (cort-deftest-with-equal ppp/ppp-sexp--simple
   '(
     ((ppp-sexp-to-string
@@ -98,6 +100,47 @@ closure")))
  (when (some-function a b)
    (some-function a b))
  c)")))
+
+(cort-deftest-with-equal ppp/ppp-sexp--let
+  '(
+    ((ppp-sexp-to-string
+      '(let ((name (copy-sequence filename))
+             (start 0))
+         (list name start))
+      'nonewline)
+     "\
+(let ((name (copy-sequence filename))
+      (start 0))
+  (list name start))")
+
+    ((ppp-sexp-to-string
+      '(let ((name (copy-sequence filename))
+             (start (when (some-function a b)
+                      (some-function a b))))
+         (list name start))
+      'nonewline)
+     "(let ((name (copy-sequence filename))
+      (start (when (some-function a b)
+               (some-function a b))))
+  (list name start))")))
+
+(cort-deftest-with-equal ppp/ppp-sexp--setq
+  '(
+    ((ppp-sexp-to-string
+      '(setq tem (substring tem 3)
+             newname (expand-file-name newname)
+             newname (file-chase-links
+                      (directory-file-name
+                       (file-name-directory newname)))
+             newname (file-name-directory newname))
+      'nonewline)
+     "\
+(setq tem (substring tem 3)
+      newname (expand-file-name newname)
+      newname (file-chase-links
+               (directory-file-name
+                (file-name-directory newname)))
+      newname (file-name-directory newname))")))
 
 ;; (provide 'ppp-test)
 

@@ -44,8 +44,8 @@
            goto-char goto-line))
     (2 . (closure defcustom))
     (3 . (macro))
-    ((lambda () (ppp--add-newline-per-sexp 2)) . (setq))
-    ((lambda () (down-list) (ppp--add-newline-per-sexp 1)) . (let let*)))
+    (ppp--add-newline-for-let . (let let*))
+    (ppp--add-newline-for-setq . (setq setf)))
   "Special indent specification.
 Element at the top of the list takes precedence.
 
@@ -94,33 +94,36 @@ The value its key is t, is default minimum-warning-level value."
 
 (defun ppp-debug-ov-make ()
   "Make debug overlay at point."
-  (when ppp-debug
-    (ppp-debug-ov-remove)
-    (dotimes (i 5)
-      (let ((ov (make-overlay (point) (1+ (point)))))
-        (setf (nth i ppp-debug-ovs) ov)
-        (move-overlay ov (point) (1+ (point)))
-        (overlay-put ov 'ppp-debug-overlay t)
-        (overlay-put ov 'priority (- 10 i))))
-    (ppp-debug-ov-move)))
+  (prog1 t
+    (when ppp-debug
+      (ppp-debug-ov-remove)
+      (dotimes (i 5)
+        (let ((ov (make-overlay (point) (1+ (point)))))
+          (setf (nth i ppp-debug-ovs) ov)
+          (move-overlay ov (point) (1+ (point)))
+          (overlay-put ov 'ppp-debug-overlay t)
+          (overlay-put ov 'priority (- 10 i))))
+      (ppp-debug-ov-move))))
 
 (defun ppp-debug-ov-move (&optional inx)
   "Move INXth debug overlay at PTR."
-  (when ppp-debug
-    (let* ((inx* (or inx 0))
-           (ov (nth inx* ppp-debug-ovs)))
-      (overlay-put ov 'face `(t :foreground "black"
-                                :background ,(nth inx* ppp-debug-palette)))
-      (move-overlay ov (point) (1+ (point))))))
+  (prog1 t
+    (when ppp-debug
+      (let* ((inx* (or inx 0))
+             (ov (nth inx* ppp-debug-ovs)))
+        (overlay-put ov 'face `(t :foreground "black"
+                                  :background ,(nth inx* ppp-debug-palette)))
+        (move-overlay ov (point) (1+ (point)))))))
 
 (defun ppp-debug-ov-remove ()
   "Remove ppp-debug-overlay in buffer."
-  (when ppp-debug
-    (dolist (ov (cl-remove-if-not
-                 (lambda (ov)
-                   (overlay-get ov 'ppp-debug-overlay))
-                 (overlays-in (point-min) (point-max))))
-      (delete-overlay ov))))
+  (prog1 t
+    (when ppp-debug
+      (dolist (ov (cl-remove-if-not
+                   (lambda (ov)
+                     (overlay-get ov 'ppp-debug-overlay))
+                   (overlays-in (point-min) (point-max))))
+        (delete-overlay ov)))))
 
 
 ;;; wrapper functions
@@ -130,7 +133,7 @@ The value its key is t, is default minimum-warning-level value."
 With ARG, do it that many times.  see `forward-sexp'."
   (condition-case _
       (progn
-        (apply #'forward-sexp arg)
+        (apply #'forward-sexp `(,arg))
         t)
     (scan-error nil)))
 
@@ -139,7 +142,7 @@ With ARG, do it that many times.  see `forward-sexp'."
 With ARG, do it that many times.  see `backward-sexp'."
   (condition-case _
       (progn
-        (apply #'backward-sexp arg)
+        (apply #'backward-sexp `(,arg))
         t)
     (scan-error nil)))
 
@@ -148,7 +151,7 @@ With ARG, do it that many times.  see `backward-sexp'."
 With ARG, do it that many times.  see `forward-list'."
   (condition-case _
       (progn
-        (apply #'forward-list arg)
+        (apply #'forward-list `(,arg))
         t)
     (scan-error nil)))
 
@@ -157,7 +160,7 @@ With ARG, do it that many times.  see `forward-list'."
 With ARG, do it that many times.  see `backward-list'."
   (condition-case _
       (progn
-        (apply #'backward-list arg)
+        (apply #'backward-list `(,arg))
         t)
     (scan-error nil)))
 
@@ -166,7 +169,7 @@ With ARG, do it that many times.  see `backward-list'."
 With ARG, do this that many times.  see `down-list'."
   (condition-case _
       (progn
-        (apply #'down-list arg)
+        (apply #'down-list `(,arg))
         t)
     (scan-error nil)))
 
@@ -175,7 +178,7 @@ With ARG, do this that many times.  see `down-list'."
 With ARG, do this that many times.  see `backward-up-list'."
   (condition-case _
       (progn
-        (apply #'backward-up-list arg)
+        (apply #'backward-up-list `(,arg))
         t)
     (scan-error nil)))
 
@@ -184,9 +187,15 @@ With ARG, do this that many times.  see `backward-up-list'."
 With ARG, do this that many times.  see `up-list'."
   (condition-case _
       (progn
-        (apply #'up-list arg)
+        (apply #'up-list `(,arg))
         t)
     (scan-error nil)))
+
+(defun ppp--insert (&rest args)
+  "Insert ARGS.  see `insert'."
+  (progn
+    (apply #'insert args)
+    t))
 
 
 ;;; Small utility
@@ -202,42 +211,70 @@ With ARG, do this that many times.  see `up-list'."
 
 (defun ppp--skip-spaces-forward ()
   "Skip spaces forward."
-  (skip-chars-forward " \t\n"))
+  (progn
+    (skip-chars-forward " \t\n")
+    t))
 
 (defun ppp--skip-spaces-backward ()
   "Skip spaces backward."
-  (skip-chars-backward " \t\n"))
+  (progn
+    (skip-chars-backward " \t\n")
+    t))
 
 
 ;;; ppp-sexp
 
 (defun ppp--add-newline-this-sexp ()
-  "Add new line this pointed sexp."
+  "Add newline this pointed sexp."
   (save-restriction
     (save-excursion
       (let ((beg (point))
-            (end (progn (forward-sexp) (point))))
-        (narrow-to-region beg end)
-        (ppp-buffer 'nonewline 'noindent)))))
+            (end (progn (and (ppp--forward-sexp) (point)))))
+        (when (and beg end (< beg end))
+          (narrow-to-region beg end)
+          (ppp-buffer 'nonewline 'noindent)
+          t)))))
 
 (defun ppp--add-newline-after-sexp (nsexp)
-  "Add new line after NSEXP.
+  "Add newline after NSEXP.
 Return t if scan succeeded and return nil if scan failed."
-  (ignore-errors
-    (dotimes (_ nsexp)
-      (forward-sexp) (ppp-debug-ov-move 4)
-      (ppp--skip-spaces-forward)
-      (ppp--add-newline-this-sexp))
-    (ignore-errors
-      (forward-sexp)
-      (backward-sexp)
-      (ppp--skip-spaces-backward)
-      (insert "\n"))
-    t))
+  (and
+   (let (res)
+     (dotimes (_ nsexp res)
+       (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
+       (ppp--add-newline-this-sexp)
+       (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move 4)))))
+   (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))
 
 (defun ppp--add-newline-per-sexp (nsexp)
-  "Add new line per NSEXP."
+  "Add newline per NSEXP."
   (while (ppp--add-newline-after-sexp nsexp)))
+
+(defun ppp--add-newline-for-let ()
+  "Add newline for `let'."
+  (and
+   (ppp--down-list) (ppp-debug-ov-move 4)
+   (while (and
+           (ppp--down-list) (ppp-debug-ov-move 4)
+           (and
+            (ppp--forward-sexp) (ppp-debug-ov-move 4)
+            (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
+            (ppp--add-newline-this-sexp))
+           (ppp--up-list) (ppp-debug-ov-move 4)
+           (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))))
+
+(defun ppp--add-newline-for-setq ()
+  "Add newline for `let'."
+  (and
+   (while (and
+           (and
+            (ppp--add-newline-this-sexp)
+            (ppp--forward-sexp) (ppp-debug-ov-move 4))
+           (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
+           (and
+            (ppp--add-newline-this-sexp)
+            (ppp--forward-sexp) (ppp-debug-ov-move 4))
+           (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))))
 
 (defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
@@ -269,19 +306,19 @@ ppp version of `pp-buffer'."
     (let* ((op (sexp-at-point))
            (indent (ppp--get-indent op)))
       (cond
-       ((functionp indent)
-        (forward-sexp)
-        (funcall indent)
-        (ignore-errors (forward-sexp) (backward-sexp) (insert "\n")))
+       ((or (functionp indent) (and (symbolp indent) (not (null indent))))
+        (and
+         (ppp--forward-sexp) (ppp-debug-ov-move)
+         (funcall (if (functionp indent) indent (symbol-function indent)))
+         (unless (eq ?\) (char-after)) (ppp--insert "\n"))))
        ((integerp indent)
-        (forward-sexp)
-        (dotimes (_ indent)
-          (ignore-errors
-            (forward-sexp) (ppp-debug-ov-move)))
-        (if (not (eobp))
-            (ignore-errors (forward-sexp) (backward-sexp) (insert "\n"))
-          (unless notailnewline (insert "\n") (ppp-debug-ov-move))))
-       ((ignore-errors (down-list 1) (ppp-debug-ov-move) t)
+        (and
+         (ppp--forward-sexp) (ppp-debug-ov-move)
+         (let (res)
+           (dotimes (_ indent res)
+             (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move)))))
+         (unless (eq ?\) (char-after)) (ppp--insert "\n"))))
+       ((and (ppp--down-list) (ppp-debug-ov-move))
         (save-excursion
           (backward-char 1) (ppp-debug-ov-move 1)
           (skip-chars-backward "'`#^") (ppp-debug-ov-move 1)
@@ -289,21 +326,16 @@ ppp version of `pp-buffer'."
             (delete-region
              (point)
              (progn (ppp--skip-spaces-backward) (point)))
-            (insert "\n") (ppp-debug-ov-move 1))))
-       ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
+            (ppp--insert "\n") (ppp-debug-ov-move 1))))
+       ((and (ppp--up-list) (ppp-debug-ov-move))
         (skip-syntax-forward ")") (ppp-debug-ov-move)
         (delete-region
          (point)
          (progn (ppp--skip-spaces-forward) (point)))
-        (cond
-         ((not (eobp))
-          (insert "\n") (ppp-debug-ov-move))
-         ((and (eobp) (not notailnewline))
-          (insert "\n") (ppp-debug-ov-move))))
+        (ppp--insert "\n") (ppp-debug-ov-move))
        (t (goto-char (point-max)) (ppp-debug-ov-move)))))
-  (unless noindent
-    (goto-char (point-min)) (ppp-debug-ov-move)
-    (indent-sexp)))
+  (when (and notailnewline (eq ?\n (char-before))) (delete-char -1))
+  (unless noindent (goto-char (point-min)) (indent-sexp)))
 
 (defun ppp-pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object.
@@ -366,8 +398,7 @@ See `ppp-list' to get more info."
   (with-ppp--working-buffer form
     (when (and form (listp form))
       (forward-char)
-      (ignore-errors
-        (while t (forward-sexp) (newline)))
+      (while (and (ppp--forward-sexp) (ppp--insert "\n")))
       (delete-char -1))))
 
 ;;;###autoload
@@ -378,8 +409,7 @@ See `ppp-plist' to get more info."
   (with-ppp--working-buffer form
     (when (and form (listp form))
       (forward-char)
-      (ignore-errors
-        (while t (forward-sexp 2) (newline)))
+      (while (and (ppp--forward-sexp 2) (ppp--insert "\n")))
       (delete-char -1))))
 
 ;;;###autoload

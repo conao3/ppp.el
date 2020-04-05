@@ -101,7 +101,8 @@ The value its key is t, is default minimum-warning-level value."
         (setf (nth i ppp-debug-ovs) ov)
         (move-overlay ov (point) (1+ (point)))
         (overlay-put ov 'ppp-debug-overlay t)
-        (overlay-put ov 'priority (- 10 i))))))
+        (overlay-put ov 'priority (- 10 i))))
+    (ppp-debug-ov-move)))
 
 (defun ppp-debug-ov-move (&optional inx)
   "Move INXth debug overlay at PTR."
@@ -228,8 +229,8 @@ ppp version of `pp-buffer'."
 (defun ppp-pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object.
 `pp-buffer' with debug marker."
+  (goto-char (point-min))
   (ppp-debug-ov-make)
-  (goto-char (point-min)) (ppp-debug-ov-move)
   (while (not (eobp))
     ;; (message "%06d" (- (point-max) (point)))
     (cond

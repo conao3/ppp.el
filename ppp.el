@@ -281,13 +281,10 @@ Return t if scan succeeded and return nil if scan failed."
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
            (print-quoted t))
-       (prin1 ,form (current-buffer)))
+       (insert (prin1-to-string ,form)))
      (goto-char (point-min))
      (save-excursion
        ,@body)
-     (delete-trailing-whitespace)
-     (while (re-search-forward "^ *)" nil t)
-       (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload

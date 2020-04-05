@@ -244,7 +244,7 @@ With ARG, do this that many times.  see `up-list'."
   "Add newline after NSEXP.
 Return t if scan succeeded and return nil if scan failed."
   (and
-   (let (res)
+   (let ((res (= 0 nsexp)))               ; make RES t when NSEXP is 0
      (dotimes (_ nsexp res)
        (ppp--add-newline-this-sexp)
        (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move 4)))))

@@ -125,7 +125,21 @@ closure")))
      "\
 (if (functionp indent)
     indent
-  (symbol-function indent))")))
+  (symbol-function indent))")
+
+    ((ppp-sexp-to-string
+      '(save-match-data
+         (if (and
+              (null limit)
+              (= count 100))
+             (error "Apparent cycle of symbolic links for %s" filename)))
+      'nonewline)
+     "\
+(save-match-data
+  (if (and
+       (null limit)
+       (= count 100))
+      (error \"Apparent cycle of symbolic links for %s\" filename)))")))
 
 (cort-deftest-with-equal ppp/ppp-sexp--let
   '(

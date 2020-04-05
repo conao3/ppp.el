@@ -69,9 +69,15 @@ Example:
 
     ((ppp-sexp-to-string
       'closure
-      'nonewline)      ; issue#38
+      'nonewline)                       ; issue#38
      "\
-closure")))
+closure")
+
+    ((ppp-sexp-to-string
+      'leaf
+      'nonewline)                       ; issue#79
+     "\
+leaf")))
 
 (cort-deftest-with-equal ppp/ppp-sexp--indent
   '(

@@ -99,7 +99,7 @@ closure")))
    (some-function a b))
  c)")))
 
-;; (provide 'p-test)
+;; (provide 'ppp-test)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

@@ -134,6 +134,14 @@ The value its key is t, is default minimum-warning-level value."
       (when (symbolp op)
         (plist-get (symbol-plist op) 'lisp-indent-function))))
 
+(defun ppp--skip-spaces-forward ()
+  "Skip spaces forward."
+  (skip-chars-forward " \t\n"))
+
+(defun ppp--skip-spaces-backward ()
+  "Skip spaces backward."
+  (skip-chars-backward " \t\n"))
+
 
 ;;; ppp-sexp
 
@@ -213,13 +221,13 @@ ppp version of `pp-buffer'."
           (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
             (delete-region
              (point)
-             (progn (skip-chars-backward " \t\n") (point)))
+             (progn (ppp--skip-spaces-backward) (point)))
             (insert "\n") (ppp-debug-ov-move 1))))
        ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
         (skip-syntax-forward ")") (ppp-debug-ov-move)
         (delete-region
          (point)
-         (progn (skip-chars-forward " \t\n") (point)))
+         (progn (ppp--skip-spaces-forward) (point)))
         (unless notailnewline (insert "\n") (ppp-debug-ov-move)))
        (t (goto-char (point-max)) (ppp-debug-ov-move)))))
   (unless noindent
@@ -241,13 +249,13 @@ ppp version of `pp-buffer'."
         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
           (delete-region
            (point)
-           (progn (skip-chars-backward " \t\n") (point)))
+           (progn (ppp--skip-spaces-backward) (point)))
           (insert "\n") (ppp-debug-ov-move 1))))
      ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
       (skip-syntax-forward ")") (ppp-debug-ov-move)
       (delete-region
        (point)
-       (progn (skip-chars-forward " \t\n") (point)))
+       (progn (ppp--skip-spaces-forward) (point)))
       (insert ?\n) (ppp-debug-ov-move))
      (t (goto-char (point-max)) (ppp-debug-ov-move))))
   (goto-char (point-min)) (ppp-debug-ov-move)

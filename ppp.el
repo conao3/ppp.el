@@ -411,11 +411,11 @@ See `ppp-plist' to get more info."
         (goto-char (point-max)) (ppp--insert "\n")))))
 
 ;;;###autoload
-(defun ppp-alist-to-string (form &optional _notailnewline)
+(defun ppp-alist-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for alist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
-  (ppp-plist-to-string (ppp-alist-to-plist form)))
+  (ppp-plist-to-string (ppp-alist-to-plist form notailnewline)))
 
 ;;;###autoload
 (defun ppp-symbol-function-to-string (symbol &optional notailnewline)

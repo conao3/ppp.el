@@ -164,21 +164,6 @@ Return t if scan succeeded and return nil if scan failed."
   "Add new line per NSEXP."
   (while (ppp--add-newline-after-sexp nsexp)))
 
-(defun ppp--delete-spaces-at-point ()
-  "Delete spaces near point."
-  (let ((spaces " \t\n"))
-    (delete-region
-     (progn (skip-chars-backward spaces) (point))
-     (progn (skip-chars-forward spaces) (point)))))
-
-(defun ppp--delete-last-newline (str)
-  "Delete last newline character for STR."
-  (replace-regexp-in-string "\n$" "" str))
-
-(defun ppp--space-before-p ()
-  "Return non-nil if before point is spaces."
-  (memq (char-before) '(?\s ?\t ?\n)))
-
 (defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
   (declare (indent 1) (debug t))

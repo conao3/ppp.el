@@ -78,7 +78,7 @@ The value its key is t, is default minimum-warning-level value."
   :type 'sexp)
 
 
-;;; Helpers
+;;; Debug
 
 (defvar ppp-debug nil
   "If non-nil, show debug overlay.")
@@ -120,6 +120,12 @@ The value its key is t, is default minimum-warning-level value."
                    (overlay-get ov 'ppp-debug-overlay))
                  (overlays-in (point-min) (point-max))))
       (delete-overlay ov))))
+
+
+;;; Small utility
+
+
+;;; ppp-sexp
 
 (defun ppp--add-newline-this-sexp ()
   "Add new line this pointed sexp."

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.1.1
+;; Version: 2.1.2
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -301,7 +301,8 @@ ppp version of `pp-buffer'."
     (let* ((op (sexp-at-point))
            (indent (ppp--get-indent op)))
       (cond
-       ((or (functionp indent) (and (symbolp indent) (not (null indent))))
+       ((or (functionp indent)
+            (and (symbolp indent) (not (memq indent '(nil defun)))))
         (and
          (ppp--forward-sexp) (ppp--debug-ov-move)
          (funcall (if (functionp indent) indent (symbol-function indent)))))

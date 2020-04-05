@@ -124,6 +124,15 @@ The value its key is t, is default minimum-warning-level value."
 
 ;;; Small utility
 
+(defun ppp--get-indent (op)
+  "Get indent for OP."
+  (or (car
+       (cl-find-if
+        (lambda (elm) (memq op (cdr elm)))
+        ppp-indent-spec))
+      (when (symbolp op)
+        (plist-get (symbol-plist op) 'lisp-indent-function))))
+
 
 ;;; ppp-sexp
 
@@ -226,12 +235,7 @@ ppp version of `pp-buffer'."
   (ppp-debug-ov-make)
   (while (not (eobp))
     (let* ((op (sexp-at-point))
-           (indent (or (car
-                        (cl-find-if
-                         (lambda (elm) (memq op (cdr elm)))
-                         ppp-indent-spec))
-                       (when (symbolp op)
-                         (plist-get (symbol-plist op) 'lisp-indent-function)))))
+           (indent (ppp--get-indent op)))
       (cond
        ((functionp indent)
         (forward-sexp)

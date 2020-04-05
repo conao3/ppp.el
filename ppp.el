@@ -226,6 +226,7 @@ With ARG, do this that many times.  see `up-list'."
 
 (defun ppp--add-newline-this-sexp ()
   "Add newline this pointed sexp."
+  (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
   (save-restriction
     (save-excursion
       (let ((beg (point))
@@ -241,7 +242,6 @@ Return t if scan succeeded and return nil if scan failed."
   (and
    (let (res)
      (dotimes (_ nsexp res)
-       (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
        (ppp--add-newline-this-sexp)
        (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move 4)))))
    (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))
@@ -256,25 +256,14 @@ Return t if scan succeeded and return nil if scan failed."
    (ppp--down-list) (ppp-debug-ov-move 4)
    (while (and
            (ppp--down-list) (ppp-debug-ov-move 4)
-           (and
-            (ppp--forward-sexp) (ppp-debug-ov-move 4)
-            (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
-            (ppp--add-newline-this-sexp))
+           (ppp--forward-sexp) (ppp-debug-ov-move 4)
+           (ppp--add-newline-this-sexp)
            (ppp--up-list) (ppp-debug-ov-move 4)
            (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))))
 
 (defun ppp--add-newline-for-setq ()
   "Add newline for `let'."
-  (and
-   (while (and
-           (and
-            (ppp--add-newline-this-sexp)
-            (ppp--forward-sexp) (ppp-debug-ov-move 4))
-           (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
-           (and
-            (ppp--add-newline-this-sexp)
-            (ppp--forward-sexp) (ppp-debug-ov-move 4))
-           (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))))
+  (while (ppp--add-newline-after-sexp 2)))
 
 (defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."

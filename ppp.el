@@ -160,12 +160,12 @@ Return t if scan succeeded and return nil if scan failed."
   (ignore-errors
     (dotimes (_ nsexp)
       (forward-sexp) (ppp-debug-ov-move 4)
-      (skip-chars-forward " \t\n")
+      (ppp--skip-spaces-forward)
       (ppp--add-newline-this-sexp))
     (ignore-errors
       (forward-sexp)
       (backward-sexp)
-      (skip-chars-backward " \t\n")
+      (ppp--skip-spaces-backward)
       (insert "\n"))
     t))
 

@@ -196,34 +196,6 @@ Return t if scan succeeded and return nil if scan failed."
        (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
 
-(defmacro with-ppp--working-buffer-debug (form &rest body)
-  "Insert FORM, execute BODY, return `buffer-string'.
-Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
-  (declare (indent 1) (debug t))
-  `(let ((bufname "*ppp-debug*")
-         newbuf)
-     (with-current-buffer
-         (if ppp-buffer-using
-             (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
-           (get-buffer-create bufname))
-       (erase-buffer)
-       (unwind-protect
-           (let ((ppp-buffer-using t))
-             ;; see `with-ppp--working-buffer'
-             (lisp-mode-variables nil)
-             (set-syntax-table emacs-lisp-mode-syntax-table)
-             (let ((print-escape-newlines ppp-escape-newlines)
-                   (print-quoted t))
-               (prin1 ,form (current-buffer))
-               (goto-char (point-min)))
-             (progn ,@body)
-             (delete-trailing-whitespace)
-             (while (re-search-forward "^ *)" nil t)
-               (delete-region (line-end-position 0) (1- (point))))
-             (buffer-substring-no-properties (point-min) (point-max)))
-         (when newbuf
-           (kill-buffer newbuf))))))
-
 ;;;###autoload
 (defun ppp-buffer (&optional notailnewline noindent)
   "Prettify the current buffer with printed representation of a Lisp object.

@@ -208,7 +208,8 @@ ppp version of `pp-buffer'."
         (funcall indent)
         (ignore-errors (forward-sexp) (backward-sexp) (insert "\n")))
        ((integerp indent)
-        (dotimes (_ (1+ indent))
+        (forward-sexp)
+        (dotimes (_ indent)
           (ignore-errors
             (forward-sexp) (ppp-debug-ov-move)))
         (if (not (eobp))

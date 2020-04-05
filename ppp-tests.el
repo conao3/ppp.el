@@ -47,36 +47,53 @@ Example:
 
 ;;; test definitions
 
-(cort-deftest-with-equal ppp/ppp-sexp
+(cort-deftest-with-equal ppp/ppp-sexp--simple
   '(
-    ((ppp-sexp-to-string '(a b c) 'nonewline)
+    ((ppp-sexp-to-string
+      '(a b c)
+      'nonewline)
      "\
 (a b c)")
 
-    ((ppp-sexp-to-string '(a (some-function a b) c) 'nonewline)
+    ((ppp-sexp-to-string
+      '(a
+        (some-function a b)
+        c)
+      'nonewline)
      "\
 (a
  (some-function a b)
  c)")
 
-    ((ppp-sexp-to-string '(a (when a (some-function a b)) c) 'nonewline)
+    ((ppp-sexp-to-string
+      '(a
+        (when a
+          (some-function a b))
+        c)
+      'nonewline)
      "\
 (a
  (when a
    (some-function a b))
  c)")
 
-    ((ppp-sexp-to-string '(lambda (a b) (message a b)) 'nonewline)
+    ((ppp-sexp-to-string
+      '(lambda (a b)
+         (message a b))
+      'nonewline)
      "\
 (lambda (a b)
-  (message a b))")))
+  (message a b))")
 
-(cort-deftest-with-equal ppp/misc
-  '(((ppp-sexp-to-string '(defcustom dummy-variable) 'nonewline)
+    ((ppp-sexp-to-string
+      '(defcustom dummy-variable)
+      'nonewline)
      "\
 (defcustom dummy-variable)")
 
-    ((ppp-sexp-to-string 'closure 'nonewline)      ; issue#38
+    ((ppp-sexp-to-string
+      'closure
+      'nonewline)      ; issue#38
      "\
 closure")))
 

@@ -73,7 +73,7 @@ Example:
      "\
 closure")))
 
-(cort-deftest-with-equal ppp/ppp-sexp--when
+(cort-deftest-with-equal ppp/ppp-sexp--indent
   '(
     ((ppp-sexp-to-string
       '(a
@@ -99,7 +99,23 @@ closure")))
 (a
  (when (some-function a b)
    (some-function a b))
- c)")))
+ c)")
+
+    ((ppp-sexp-to-string
+      '(while (and
+               (or
+                (null limit)
+                (< count limit))
+               (setq tem (file-symlink-p newname)))
+         (setq tem (substring tem 3)))
+      'nonewline)
+     "\
+(while (and
+        (or
+         (null limit)
+         (< count limit))
+        (setq tem (file-symlink-p newname)))
+  (setq tem (substring tem 3)))")))
 
 (cort-deftest-with-equal ppp/ppp-sexp--let
   '(

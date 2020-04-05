@@ -131,65 +131,72 @@ The value its key is t, is default minimum-warning-level value."
 (defun ppp--forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  see `forward-sexp'."
-  (condition-case _
-      (progn
-        (apply #'forward-sexp `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'forward-sexp `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
 With ARG, do it that many times.  see `backward-sexp'."
-  (condition-case _
-      (progn
-        (apply #'backward-sexp `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-sexp `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
 With ARG, do it that many times.  see `forward-list'."
-  (condition-case _
-      (progn
-        (apply #'forward-list `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'forward-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--backward-list (&optional arg)
   "Move backward across one balanced group of parentheses.
 With ARG, do it that many times.  see `backward-list'."
-  (condition-case _
-      (progn
-        (apply #'backward-list `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--down-list (&optional arg)
   "Move forward down one level of parentheses.
 With ARG, do this that many times.  see `down-list'."
-  (condition-case _
-      (progn
-        (apply #'down-list `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'down-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
 With ARG, do this that many times.  see `backward-up-list'."
-  (condition-case _
-      (progn
-        (apply #'backward-up-list `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-up-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--up-list (&optional arg)
   "Move forward out of one level of parentheses.
 With ARG, do this that many times.  see `up-list'."
-  (condition-case _
-      (progn
-        (apply #'up-list `(,arg))
-        t)
-    (scan-error nil)))
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'up-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
 
 (defun ppp--insert (&rest args)
   "Insert ARGS.  see `insert'."
@@ -303,9 +310,7 @@ ppp version of `pp-buffer'."
        ((integerp indent)
         (and
          (ppp--forward-sexp) (ppp-debug-ov-move)
-         (let (res)
-           (dotimes (_ indent res)
-             (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move)))))
+         (ppp--add-newline-after-sexp indent)
          (unless (eq ?\) (char-after)) (ppp--insert "\n"))))
        ((and (ppp--down-list) (ppp-debug-ov-move))
         (save-excursion

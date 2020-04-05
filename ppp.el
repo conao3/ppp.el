@@ -200,9 +200,8 @@ With ARG, do this that many times.  see `up-list'."
 
 (defun ppp--insert (&rest args)
   "Insert ARGS.  see `insert'."
-  (progn
-    (apply #'insert args)
-    t))
+  (prog1 t
+    (apply #'insert args)))
 
 
 ;;; Small utility
@@ -218,15 +217,13 @@ With ARG, do this that many times.  see `up-list'."
 
 (defun ppp--skip-spaces-forward ()
   "Skip spaces forward."
-  (progn
-    (skip-chars-forward " \t\n")
-    t))
+  (prog1 t
+    (skip-chars-forward " \t\n")))
 
 (defun ppp--skip-spaces-backward ()
   "Skip spaces backward."
-  (progn
-    (skip-chars-backward " \t\n")
-    t))
+  (prog1 t
+    (skip-chars-backward " \t\n")))
 
 
 ;;; ppp-sexp

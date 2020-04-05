@@ -5,7 +5,7 @@
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; Version: 2.0.8
 ;; Keywords: tools
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -283,6 +283,7 @@ Return t if scan succeeded and return nil if scan failed."
            (print-quoted t))
        (insert (prin1-to-string ,form)))
      (goto-char (point-min))
+     (ppp--debug-ov-make)
      (save-excursion
        ,@body)
      (buffer-substring-no-properties (point-min) (point-max))))
@@ -431,6 +432,50 @@ If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-symbol-value' to get more info."
   (ppp-sexp-to-string (symbol-value symbol) notailnewline))
 
+;;;###autoload
+(defmacro ppp-leaf-to-string (form &optional notailnewline)
+  "Output the pretty-printed representation of FORM suitable for leaf.
+If NOTAILNEWLINE is non-nil, add no newline at tail newline.
+See `ppp-leaf' to get more info."
+  (require 'leaf)                       ; for leaf proper indentation
+  (let ((form* (if (memq (car form) '(leaf use-package)) form (eval form))))
+    (with-ppp--working-buffer form*
+      (let (key)
+        (save-excursion
+          (and
+           (and
+            (ppp--down-list) (ppp--debug-ov-move)
+            (ppp--forward-sexp 2) (ppp--debug-ov-move)
+            (ppp--skip-spaces-forward) (ppp--debug-ov-move))
+           (while (let ((sexp (sexp-at-point)))
+                    (and
+                     (cond
+                      ((keywordp sexp)
+                       (setq key sexp)
+                       (and
+                        (prog1 t
+                          (delete-region
+                           (point)
+                           (progn (ppp--skip-spaces-backward) (point))))
+                        (ppp--insert "\n") (ppp--debug-ov-move)
+                        (ppp--forward-sexp) (ppp--debug-ov-move)
+                        (prog1 t
+                          (when (memq sexp '(:preface :init :config))
+                            (ppp--insert "\n") (ppp--debug-ov-move)))))
+                      (t
+                       (cl-case key
+                         ((:preface :init :config)
+                          (and
+                           (ppp--add-newline-after-sexp 1) (ppp--debug-ov-move)))
+                         (otherwise
+                          (and
+                           (ppp--add-newline-this-sexp) (ppp--debug-ov-move)
+                           (ppp--forward-sexp) (ppp--debug-ov-move))))))
+                     (ppp--skip-spaces-forward) (ppp--debug-ov-move))))))
+        (indent-sexp)
+        (unless notailnewline
+          (goto-char (point-max)) (ppp--insert "\n"))))))
+
 
 ;;; Princ functions
 
@@ -490,6 +535,13 @@ If NOTAILNEWLINE is non-nil, add no newline at tail newline."
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
     (princ (ppp-symbol-value-to-string symbol notailnewline))))
+
+;;;###autoload
+(defmacro ppp-leaf (form &optional notailnewline)
+  "Output the pretty-printed representation of FORM suitable for leaf.
+If NOTAILNEWLINE is non-nil, add no newline at tail newline."
+  `(prog1 nil
+     (princ (ppp-leaf-to-string ,form ,notailnewline))))
 
 ;;;###autoload
 (defun ppp-alist-to-plist (alist &optional _notailnewline)

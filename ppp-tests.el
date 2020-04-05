@@ -202,6 +202,43 @@ closure")))
                 (file-name-directory newname)))
       newname (file-name-directory newname))")))
 
+(cort-deftest-with-equal ppp/ppp-list
+  '(
+    ((ppp-list-to-string
+      '((0 . (unwind-protect progn))
+        (1 . (lambda if condition-case not null))
+        (2 . (closure defcustom))
+        (3 . (macro))
+        (ppp--add-newline-for-let . (let let*))
+        (ppp--add-newline-for-setq . (setq setf)))
+      'nonewline)
+     "\
+((0 unwind-protect progn)
+ (1 lambda if condition-case not null)
+ (2 closure defcustom)
+ (3 macro)
+ (ppp--add-newline-for-let let let*)
+ (ppp--add-newline-for-setq setq setf))")
+
+    ((ppp-list-to-string
+      '((0 . (unwind-protect progn))
+        (1 . ((lambda) if condition-case not null))
+        (2 . (closure defcustom))
+        (3 . (macro))
+        (ppp--add-newline-for-let . (let let*))
+        (ppp--add-newline-for-setq . (setq setf)))
+      'nonewline)
+     "\
+((0 unwind-protect progn)
+ (1
+  (lambda)
+  if condition-case
+  not null)
+ (2 closure defcustom)
+ (3 macro)
+ (ppp--add-newline-for-let let let*)
+ (ppp--add-newline-for-setq setq setf))")))
+
 ;; (provide 'ppp-test)
 
 ;; Local Variables:

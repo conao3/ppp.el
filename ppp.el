@@ -381,15 +381,15 @@ See `ppp-macroexpand-all' to get more info."
   `(ppp-sexp-to-string (macroexpand-all ',form) ,notailnewline))
 
 ;;;###autoload
-(defun ppp-list-to-string (form &optional _notailnewline)
+(defun ppp-list-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for list.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-list' to get more info."
   (with-ppp--working-buffer form
-    (when (and form (listp form))
-      (forward-char)
-      (while (and (ppp--forward-sexp) (ppp--insert "\n")))
-      (delete-char -1))))
+    (save-excursion
+      (ppp--add-newline-per-sexp 1)
+      (when (and notailnewline (eq ?\n (char-before))) (delete-char -1)))
+    (indent-sexp)))
 
 ;;;###autoload
 (defun ppp-plist-to-string (form &optional _notailnewline)

@@ -302,13 +302,11 @@ ppp version of `pp-buffer'."
        ((or (functionp indent) (and (symbolp indent) (not (null indent))))
         (and
          (ppp--forward-sexp) (ppp-debug-ov-move)
-         (funcall (if (functionp indent) indent (symbol-function indent)))
-         (unless (eq ?\) (char-after)) (ppp--insert "\n"))))
+         (funcall (if (functionp indent) indent (symbol-function indent)))))
        ((integerp indent)
         (and
          (ppp--forward-sexp) (ppp-debug-ov-move)
-         (ppp--add-newline-after-sexp indent)
-         (unless (eq ?\) (char-after)) (ppp--insert "\n"))))
+         (ppp--add-newline-after-sexp indent)))
        ((and (ppp--down-list) (ppp-debug-ov-move))
         (save-excursion
           (backward-char 1) (ppp-debug-ov-move 1)

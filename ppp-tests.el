@@ -115,7 +115,17 @@ closure")))
          (null limit)
          (< count limit))
         (setq tem (file-symlink-p newname)))
-  (setq tem (substring tem 3)))")))
+  (setq tem (substring tem 3)))")
+
+    ((ppp-sexp-to-string
+      '(if (functionp indent)
+           indent
+         (symbol-function indent))
+      'nonewline)
+     "\
+(if (functionp indent)
+    indent
+  (symbol-function indent))")))
 
 (cort-deftest-with-equal ppp/ppp-sexp--let
   '(

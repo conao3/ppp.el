@@ -228,7 +228,11 @@ ppp version of `pp-buffer'."
         (delete-region
          (point)
          (progn (ppp--skip-spaces-forward) (point)))
-        (unless notailnewline (insert "\n") (ppp-debug-ov-move)))
+        (cond
+         ((not (eobp))
+          (insert "\n") (ppp-debug-ov-move))
+         ((and (eobp) (not notailnewline))
+          (insert "\n") (ppp-debug-ov-move))))
        (t (goto-char (point-max)) (ppp-debug-ov-move)))))
   (unless noindent
     (goto-char (point-min)) (ppp-debug-ov-move)

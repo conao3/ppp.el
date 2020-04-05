@@ -505,7 +505,7 @@ Note:
                   (concat
                    ,(and break "\n")
                    ,(format (cadr (assq level warning-levels))
-                           (format warning-type-format pkg))
+                            (format warning-type-format pkg))
                    ;; (seq-let (caller caller-args) (ppp--get-caller 2)
                    ;;   (prin1-to-string caller)
                    ;;   " "

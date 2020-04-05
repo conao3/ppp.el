@@ -123,6 +123,72 @@ The value its key is t, is default minimum-warning-level value."
       (delete-overlay ov))))
 
 
+;;; wrapper functions
+
+(defun ppp--forward-sexp (&optional arg)
+  "Move forward across one balanced expression (sexp).
+With ARG, do it that many times.  see `forward-sexp'."
+  (condition-case _
+      (progn
+        (apply #'forward-sexp arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--backward-sexp (&optional arg)
+  "Move backward across one balanced expression (sexp).
+With ARG, do it that many times.  see `backward-sexp'."
+  (condition-case _
+      (progn
+        (apply #'backward-sexp arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--forward-list (&optional arg)
+  "Move forward across one balanced group of parentheses.
+With ARG, do it that many times.  see `forward-list'."
+  (condition-case _
+      (progn
+        (apply #'forward-list arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--backward-list (&optional arg)
+  "Move backward across one balanced group of parentheses.
+With ARG, do it that many times.  see `backward-list'."
+  (condition-case _
+      (progn
+        (apply #'backward-list arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--down-list (&optional arg)
+  "Move forward down one level of parentheses.
+With ARG, do this that many times.  see `down-list'."
+  (condition-case _
+      (progn
+        (apply #'down-list arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--backward-up-list (&optional arg)
+  "Move backward out of one level of parentheses.
+With ARG, do this that many times.  see `backward-up-list'."
+  (condition-case _
+      (progn
+        (apply #'backward-up-list arg)
+        t)
+    (scan-error nil)))
+
+(defun ppp--up-list (&optional arg)
+  "Move forward out of one level of parentheses.
+With ARG, do this that many times.  see `up-list'."
+  (condition-case _
+      (progn
+        (apply #'up-list arg)
+        t)
+    (scan-error nil)))
+
+
 ;;; Small utility
 
 (defun ppp--get-indent (op)

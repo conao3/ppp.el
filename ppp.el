@@ -92,20 +92,20 @@ The value its key is t, is default minimum-warning-level value."
 (defvar ppp-debug-palette '("SeaGreen3" "khaki3" "brown3" "aquamarine3" "plum3")
   "Debug overlay palette.")
 
-(defun ppp-debug-ov-make ()
+(defun ppp--debug-ov-make ()
   "Make debug overlay at point."
   (prog1 t
     (when ppp-debug
-      (ppp-debug-ov-remove)
+      (ppp--debug-ov-remove)
       (dotimes (i 5)
         (let ((ov (make-overlay (point) (1+ (point)))))
           (setf (nth i ppp-debug-ovs) ov)
           (move-overlay ov (point) (1+ (point)))
           (overlay-put ov 'ppp-debug-overlay t)
           (overlay-put ov 'priority (- 10 i))))
-      (ppp-debug-ov-move))))
+      (ppp--debug-ov-move))))
 
-(defun ppp-debug-ov-move (&optional inx)
+(defun ppp--debug-ov-move (&optional inx)
   "Move INXth debug overlay at PTR."
   (prog1 t
     (when ppp-debug
@@ -115,7 +115,7 @@ The value its key is t, is default minimum-warning-level value."
                                   :background ,(nth inx* ppp-debug-palette)))
         (move-overlay ov (point) (1+ (point)))))))
 
-(defun ppp-debug-ov-remove ()
+(defun ppp--debug-ov-remove ()
   "Remove ppp-debug-overlay in buffer."
   (prog1 t
     (when ppp-debug
@@ -230,7 +230,7 @@ With ARG, do this that many times.  see `up-list'."
 
 (defun ppp--add-newline-this-sexp ()
   "Add newline this pointed sexp."
-  (ppp--skip-spaces-forward) (ppp-debug-ov-move 4)
+  (ppp--skip-spaces-forward) (ppp--debug-ov-move 4)
   (save-restriction
     (save-excursion
       (let ((beg (point))
@@ -247,7 +247,7 @@ Return t if scan succeeded and return nil if scan failed."
    (let ((res (= 0 nsexp)))               ; make RES t when NSEXP is 0
      (dotimes (_ nsexp res)
        (ppp--add-newline-this-sexp)
-       (setq res (and (ppp--forward-sexp) (ppp-debug-ov-move 4)))))
+       (setq res (and (ppp--forward-sexp) (ppp--debug-ov-move 4)))))
    (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))
 
 (defun ppp--add-newline-per-sexp (nsexp)
@@ -257,17 +257,17 @@ Return t if scan succeeded and return nil if scan failed."
 (defun ppp--add-newline-for-let ()
   "Add newline for `let'."
   (and
-   (ppp--down-list) (ppp-debug-ov-move 4)
+   (ppp--down-list) (ppp--debug-ov-move 4)
    (progn (save-excursion (ppp--add-newline-per-sexp 1)) t)
    (while (and
-           (ppp--down-list) (ppp-debug-ov-move 4)
-           (ppp--forward-sexp) (ppp-debug-ov-move 4)
+           (ppp--down-list) (ppp--debug-ov-move 4)
+           (ppp--forward-sexp) (ppp--debug-ov-move 4)
            (prog1 t
              (delete-region
               (point)
               (progn (ppp--skip-spaces-forward) (point))))
            (ppp--insert " ")
-           (ppp--up-list) (ppp-debug-ov-move 4)))))
+           (ppp--up-list) (ppp--debug-ov-move 4)))))
 
 (defun ppp--add-newline-for-setq ()
   "Add newline for `let'."
@@ -298,35 +298,35 @@ If NOINDENT is non-nil, don't perform indent sexp.
 ppp version of `pp-buffer'."
   (interactive)
   (goto-char (point-min))
-  (ppp-debug-ov-make)
+  (ppp--debug-ov-make)
   (while (not (eobp))
     (let* ((op (sexp-at-point))
            (indent (ppp--get-indent op)))
       (cond
        ((or (functionp indent) (and (symbolp indent) (not (null indent))))
         (and
-         (ppp--forward-sexp) (ppp-debug-ov-move)
+         (ppp--forward-sexp) (ppp--debug-ov-move)
          (funcall (if (functionp indent) indent (symbol-function indent)))))
        ((integerp indent)
         (and
-         (ppp--forward-sexp) (ppp-debug-ov-move)
+         (ppp--forward-sexp) (ppp--debug-ov-move)
          (ppp--add-newline-after-sexp indent)))
-       ((and (ppp--down-list) (ppp-debug-ov-move))
+       ((and (ppp--down-list) (ppp--debug-ov-move))
         (save-excursion
-          (backward-char 1) (ppp-debug-ov-move 1)
-          (skip-chars-backward "'`#^") (ppp-debug-ov-move 1)
+          (backward-char 1) (ppp--debug-ov-move 1)
+          (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
           (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
             (delete-region
              (point)
              (progn (ppp--skip-spaces-backward) (point)))
-            (ppp--insert "\n") (ppp-debug-ov-move 1))))
-       ((and (ppp--up-list) (ppp-debug-ov-move))
-        (skip-syntax-forward ")") (ppp-debug-ov-move)
+            (ppp--insert "\n") (ppp--debug-ov-move 1))))
+       ((and (ppp--up-list) (ppp--debug-ov-move))
+        (skip-syntax-forward ")") (ppp--debug-ov-move)
         (delete-region
          (point)
          (progn (ppp--skip-spaces-forward) (point)))
-        (ppp--insert "\n") (ppp-debug-ov-move))
-       (t (goto-char (point-max)) (ppp-debug-ov-move)))))
+        (ppp--insert "\n") (ppp--debug-ov-move))
+       (t (goto-char (point-max)) (ppp--debug-ov-move)))))
   (when (and notailnewline (eq ?\n (char-before))) (delete-char -1))
   (unless noindent (goto-char (point-min)) (indent-sexp)))
 
@@ -334,27 +334,27 @@ ppp version of `pp-buffer'."
   "Prettify the current buffer with printed representation of a Lisp object.
 `pp-buffer' with debug marker."
   (goto-char (point-min))
-  (ppp-debug-ov-make)
+  (ppp--debug-ov-make)
   (while (not (eobp))
     ;; (message "%06d" (- (point-max) (point)))
     (cond
-     ((ignore-errors (down-list 1) (ppp-debug-ov-move) t)
+     ((ignore-errors (down-list 1) (ppp--debug-ov-move) t)
       (save-excursion
-        (backward-char 1) (ppp-debug-ov-move 1)
-        (skip-chars-backward "'`#^") (ppp-debug-ov-move 1)
+        (backward-char 1) (ppp--debug-ov-move 1)
+        (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
           (delete-region
            (point)
            (progn (ppp--skip-spaces-backward) (point)))
-          (insert "\n") (ppp-debug-ov-move 1))))
-     ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
-      (skip-syntax-forward ")") (ppp-debug-ov-move)
+          (insert "\n") (ppp--debug-ov-move 1))))
+     ((ignore-errors (up-list 1) (ppp--debug-ov-move) t)
+      (skip-syntax-forward ")") (ppp--debug-ov-move)
       (delete-region
        (point)
        (progn (ppp--skip-spaces-forward) (point)))
-      (insert ?\n) (ppp-debug-ov-move))
-     (t (goto-char (point-max)) (ppp-debug-ov-move))))
-  (goto-char (point-min)) (ppp-debug-ov-move)
+      (insert ?\n) (ppp--debug-ov-move))
+     (t (goto-char (point-max)) (ppp--debug-ov-move))))
+  (goto-char (point-min)) (ppp--debug-ov-move)
   (indent-sexp))
 
 

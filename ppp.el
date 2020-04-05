@@ -39,13 +39,13 @@
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
 
 (defcustom ppp-indent-spec
-  '((0 . (unwind-protect))
+  '((0 . (unwind-protect progn))
     (1 . (lambda if condition-case not null car cdr 1+ 1-
            goto-char goto-line))
     (2 . (closure defcustom))
     (3 . (macro))
-    ((lambda () (ppp--add-newline-per-sexp 2)) . (setq))
-    ((lambda () (down-list) (ppp--add-newline-per-sexp 1)) . (let let*)))
+    (ppp--add-newline-for-let . (let let*))
+    (ppp--add-newline-for-setq . (setq setf)))
   "Special indent specification.
 Element at the top of the list takes precedence.
 
@@ -78,7 +78,7 @@ The value its key is t, is default minimum-warning-level value."
   :type 'sexp)
 
 
-;;; Helpers
+;;; Debug
 
 (defvar ppp-debug nil
   "If non-nil, show debug overlay.")
@@ -92,77 +92,186 @@ The value its key is t, is default minimum-warning-level value."
 (defvar ppp-debug-palette '("SeaGreen3" "khaki3" "brown3" "aquamarine3" "plum3")
   "Debug overlay palette.")
 
-(defun ppp-debug-ov-make ()
+(defun ppp--debug-ov-make ()
   "Make debug overlay at point."
-  (when ppp-debug
-    (ppp-debug-ov-remove)
-    (dotimes (i 5)
-      (let ((ov (make-overlay (point) (1+ (point)))))
-        (setf (nth i ppp-debug-ovs) ov)
-        (move-overlay ov (point) (1+ (point)))
-        (overlay-put ov 'ppp-debug-overlay t)
-        (overlay-put ov 'priority (- 10 i))))))
+  (prog1 t
+    (when ppp-debug
+      (ppp--debug-ov-remove)
+      (dotimes (i 5)
+        (let ((ov (make-overlay (point) (1+ (point)))))
+          (setf (nth i ppp-debug-ovs) ov)
+          (move-overlay ov (point) (1+ (point)))
+          (overlay-put ov 'ppp-debug-overlay t)
+          (overlay-put ov 'priority (- 10 i))))
+      (ppp--debug-ov-move))))
 
-(defun ppp-debug-ov-move (&optional inx)
+(defun ppp--debug-ov-move (&optional inx)
   "Move INXth debug overlay at PTR."
-  (when ppp-debug
-    (let* ((inx* (or inx 0))
-           (ov (nth inx* ppp-debug-ovs)))
-      (overlay-put ov 'face `(t :foreground "black"
-                                :background ,(nth inx* ppp-debug-palette)))
-      (move-overlay ov (point) (1+ (point))))))
+  (prog1 t
+    (when ppp-debug
+      (let* ((inx* (or inx 0))
+             (ov (nth inx* ppp-debug-ovs)))
+        (overlay-put ov 'face `(t :foreground "black"
+                                  :background ,(nth inx* ppp-debug-palette)))
+        (move-overlay ov (point) (1+ (point)))))))
 
-(defun ppp-debug-ov-remove ()
+(defun ppp--debug-ov-remove ()
   "Remove ppp-debug-overlay in buffer."
-  (when ppp-debug
-    (dolist (ov (cl-remove-if-not
-                 (lambda (ov)
-                   (overlay-get ov 'ppp-debug-overlay))
-                 (overlays-in (point-min) (point-max))))
-      (delete-overlay ov))))
+  (prog1 t
+    (when ppp-debug
+      (dolist (ov (cl-remove-if-not
+                   (lambda (ov)
+                     (overlay-get ov 'ppp-debug-overlay))
+                   (overlays-in (point-min) (point-max))))
+        (delete-overlay ov)))))
+
+
+;;; wrapper functions
+
+(defun ppp--forward-sexp (&optional arg)
+  "Move forward across one balanced expression (sexp).
+With ARG, do it that many times.  see `forward-sexp'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'forward-sexp `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--backward-sexp (&optional arg)
+  "Move backward across one balanced expression (sexp).
+With ARG, do it that many times.  see `backward-sexp'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-sexp `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--forward-list (&optional arg)
+  "Move forward across one balanced group of parentheses.
+With ARG, do it that many times.  see `forward-list'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'forward-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--backward-list (&optional arg)
+  "Move backward across one balanced group of parentheses.
+With ARG, do it that many times.  see `backward-list'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--down-list (&optional arg)
+  "Move forward down one level of parentheses.
+With ARG, do this that many times.  see `down-list'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'down-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--backward-up-list (&optional arg)
+  "Move backward out of one level of parentheses.
+With ARG, do this that many times.  see `backward-up-list'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'backward-up-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--up-list (&optional arg)
+  "Move forward out of one level of parentheses.
+With ARG, do this that many times.  see `up-list'."
+  (let ((prev (point)))
+    (condition-case _
+        (progn
+          (apply #'up-list `(,arg))
+          (not (equal prev (point))))
+      (scan-error nil))))
+
+(defun ppp--insert (&rest args)
+  "Insert ARGS.  see `insert'."
+  (prog1 t
+    (apply #'insert args)))
+
+
+;;; Small utility
+
+(defun ppp--get-indent (op)
+  "Get indent for OP."
+  (or (car
+       (cl-find-if
+        (lambda (elm) (memq op (cdr elm)))
+        ppp-indent-spec))
+      (when (symbolp op)
+        (plist-get (symbol-plist op) 'lisp-indent-function))))
+
+(defun ppp--skip-spaces-forward ()
+  "Skip spaces forward."
+  (prog1 t
+    (skip-chars-forward " \t\n")))
+
+(defun ppp--skip-spaces-backward ()
+  "Skip spaces backward."
+  (prog1 t
+    (skip-chars-backward " \t\n")))
+
+
+;;; ppp-sexp
 
 (defun ppp--add-newline-this-sexp ()
-  "Add new line this pointed sexp."
+  "Add newline this pointed sexp."
+  (ppp--skip-spaces-forward) (ppp--debug-ov-move 4)
   (save-restriction
     (save-excursion
       (let ((beg (point))
-            (end (progn (forward-sexp) (point))))
-        (narrow-to-region beg end)
-        (ppp-buffer 'nonewline 'noindent)))))
+            (end (progn (and (ppp--forward-sexp) (point)))))
+        (when (and beg end (< beg end))
+          (narrow-to-region beg end)
+          (ppp-buffer 'nonewline 'noindent)
+          t)))))
 
 (defun ppp--add-newline-after-sexp (nsexp)
-  "Add new line after NSEXP.
+  "Add newline after NSEXP.
 Return t if scan succeeded and return nil if scan failed."
-  (ignore-errors
-    (dotimes (_ nsexp)
-      (forward-sexp) (ppp-debug-ov-move 4)
-      (skip-chars-forward " \t\n")
-      (ppp--add-newline-this-sexp))
-    (ignore-errors
-      (forward-sexp)
-      (backward-sexp)
-      (skip-chars-backward " \t\n")
-      (insert "\n"))
-    t))
+  (and
+   (let ((res (= 0 nsexp)))               ; make RES t when NSEXP is 0
+     (dotimes (_ nsexp res)
+       (ppp--add-newline-this-sexp)
+       (setq res (and (ppp--forward-sexp) (ppp--debug-ov-move 4)))))
+   (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))
 
 (defun ppp--add-newline-per-sexp (nsexp)
-  "Add new line per NSEXP."
+  "Add newline per NSEXP."
   (while (ppp--add-newline-after-sexp nsexp)))
 
-(defun ppp--delete-spaces-at-point ()
-  "Delete spaces near point."
-  (let ((spaces " \t\n"))
-    (delete-region
-     (progn (skip-chars-backward spaces) (point))
-     (progn (skip-chars-forward spaces) (point)))))
+(defun ppp--add-newline-for-let ()
+  "Add newline for `let'."
+  (and
+   (ppp--down-list) (ppp--debug-ov-move 4)
+   (progn (save-excursion (ppp--add-newline-per-sexp 1)) t)
+   (while (and
+           (ppp--down-list) (ppp--debug-ov-move 4)
+           (ppp--forward-sexp) (ppp--debug-ov-move 4)
+           (prog1 t
+             (delete-region
+              (point)
+              (progn (ppp--skip-spaces-forward) (point))))
+           (ppp--insert " ")
+           (ppp--up-list) (ppp--debug-ov-move 4)))))
 
-(defun ppp--delete-last-newline (str)
-  "Delete last newline character for STR."
-  (replace-regexp-in-string "\n$" "" str))
-
-(defun ppp--space-before-p ()
-  "Return non-nil if before point is spaces."
-  (memq (char-before) '(?\s ?\t ?\n)))
+(defun ppp--add-newline-for-setq ()
+  "Add newline for `let'."
+  (while (ppp--add-newline-after-sexp 2)))
 
 (defmacro with-ppp--working-buffer (form &rest body)
   "Insert FORM, execute BODY, return `buffer-string'."
@@ -172,42 +281,11 @@ Return t if scan succeeded and return nil if scan failed."
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
            (print-quoted t))
-       (prin1 ,form (current-buffer)))
+       (insert (prin1-to-string ,form)))
      (goto-char (point-min))
      (save-excursion
        ,@body)
-     (delete-trailing-whitespace)
-     (while (re-search-forward "^ *)" nil t)
-       (delete-region (line-end-position 0) (1- (point))))
      (buffer-substring-no-properties (point-min) (point-max))))
-
-(defmacro with-ppp--working-buffer-debug (form &rest body)
-  "Insert FORM, execute BODY, return `buffer-string'.
-Unlike `with-ppp--working-buffer', use existing buffer instead of temp buffer."
-  (declare (indent 1) (debug t))
-  `(let ((bufname "*ppp-debug*")
-         newbuf)
-     (with-current-buffer
-         (if ppp-buffer-using
-             (get-buffer (setq newbuf (generate-new-buffer-name bufname)))
-           (get-buffer-create bufname))
-       (erase-buffer)
-       (unwind-protect
-           (let ((ppp-buffer-using t))
-             ;; see `with-ppp--working-buffer'
-             (lisp-mode-variables nil)
-             (set-syntax-table emacs-lisp-mode-syntax-table)
-             (let ((print-escape-newlines ppp-escape-newlines)
-                   (print-quoted t))
-               (prin1 ,form (current-buffer))
-               (goto-char (point-min)))
-             (progn ,@body)
-             (delete-trailing-whitespace)
-             (while (re-search-forward "^ *)" nil t)
-               (delete-region (line-end-position 0) (1- (point))))
-             (buffer-substring-no-properties (point-min) (point-max)))
-         (when newbuf
-           (kill-buffer newbuf))))))
 
 ;;;###autoload
 (defun ppp-buffer (&optional notailnewline noindent)
@@ -217,72 +295,63 @@ If NOINDENT is non-nil, don't perform indent sexp.
 ppp version of `pp-buffer'."
   (interactive)
   (goto-char (point-min))
-  (ppp-debug-ov-make)
+  (ppp--debug-ov-make)
   (while (not (eobp))
     (let* ((op (sexp-at-point))
-           (indent (or (car
-                        (cl-find-if
-                         (lambda (elm) (memq op (cdr elm)))
-                         ppp-indent-spec))
-                       (when (symbolp op)
-                         (plist-get (symbol-plist op) 'lisp-indent-function)))))
+           (indent (ppp--get-indent op)))
       (cond
-       ((functionp indent)
-        (forward-sexp)
-        (funcall indent)
-        (ignore-errors (forward-sexp) (backward-sexp) (insert "\n")))
+       ((or (functionp indent) (and (symbolp indent) (not (null indent))))
+        (and
+         (ppp--forward-sexp) (ppp--debug-ov-move)
+         (funcall (if (functionp indent) indent (symbol-function indent)))))
        ((integerp indent)
-        (dotimes (_ (1+ indent))
-          (ignore-errors
-            (forward-sexp) (ppp-debug-ov-move)))
-        (if (not (eobp))
-            (ignore-errors (forward-sexp) (backward-sexp) (insert "\n"))
-          (unless notailnewline (insert "\n") (ppp-debug-ov-move))))
-       ((ignore-errors (down-list 1) (ppp-debug-ov-move) t)
+        (and
+         (ppp--forward-sexp) (ppp--debug-ov-move)
+         (ppp--add-newline-after-sexp indent)))
+       ((and (ppp--down-list) (ppp--debug-ov-move))
         (save-excursion
-          (backward-char 1) (ppp-debug-ov-move 1)
-          (skip-chars-backward "'`#^") (ppp-debug-ov-move 1)
+          (backward-char 1) (ppp--debug-ov-move 1)
+          (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
           (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
             (delete-region
              (point)
-             (progn (skip-chars-backward " \t\n") (point)))
-            (insert "\n") (ppp-debug-ov-move 1))))
-       ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
-        (skip-syntax-forward ")") (ppp-debug-ov-move)
+             (progn (ppp--skip-spaces-backward) (point)))
+            (ppp--insert "\n") (ppp--debug-ov-move 1))))
+       ((and (ppp--up-list) (ppp--debug-ov-move))
+        (skip-syntax-forward ")") (ppp--debug-ov-move)
         (delete-region
          (point)
-         (progn (skip-chars-forward " \t\n") (point)))
-        (unless notailnewline (insert "\n") (ppp-debug-ov-move)))
-       (t (goto-char (point-max)) (ppp-debug-ov-move)))))
-  (unless noindent
-    (goto-char (point-min)) (ppp-debug-ov-move)
-    (indent-sexp)))
+         (progn (ppp--skip-spaces-forward) (point)))
+        (ppp--insert "\n") (ppp--debug-ov-move))
+       (t (goto-char (point-max)) (ppp--debug-ov-move)))))
+  (when (and notailnewline (eq ?\n (char-before))) (delete-char -1))
+  (unless noindent (goto-char (point-min)) (indent-sexp)))
 
 (defun ppp-pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object.
 `pp-buffer' with debug marker."
-  (ppp-debug-ov-make)
-  (goto-char (point-min)) (ppp-debug-ov-move)
+  (goto-char (point-min))
+  (ppp--debug-ov-make)
   (while (not (eobp))
     ;; (message "%06d" (- (point-max) (point)))
     (cond
-     ((ignore-errors (down-list 1) (ppp-debug-ov-move) t)
+     ((ignore-errors (down-list 1) (ppp--debug-ov-move) t)
       (save-excursion
-        (backward-char 1) (ppp-debug-ov-move 1)
-        (skip-chars-backward "'`#^") (ppp-debug-ov-move 1)
+        (backward-char 1) (ppp--debug-ov-move 1)
+        (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
           (delete-region
            (point)
-           (progn (skip-chars-backward " \t\n") (point)))
-          (insert "\n") (ppp-debug-ov-move 1))))
-     ((ignore-errors (up-list 1) (ppp-debug-ov-move) t)
-      (skip-syntax-forward ")") (ppp-debug-ov-move)
+           (progn (ppp--skip-spaces-backward) (point)))
+          (insert "\n") (ppp--debug-ov-move 1))))
+     ((ignore-errors (up-list 1) (ppp--debug-ov-move) t)
+      (skip-syntax-forward ")") (ppp--debug-ov-move)
       (delete-region
        (point)
-       (progn (skip-chars-forward " \t\n") (point)))
-      (insert ?\n) (ppp-debug-ov-move))
-     (t (goto-char (point-max)) (ppp-debug-ov-move))))
-  (goto-char (point-min)) (ppp-debug-ov-move)
+       (progn (ppp--skip-spaces-forward) (point)))
+      (insert ?\n) (ppp--debug-ov-move))
+     (t (goto-char (point-max)) (ppp--debug-ov-move))))
+  (goto-char (point-min)) (ppp--debug-ov-move)
   (indent-sexp))
 
 
@@ -312,35 +381,41 @@ See `ppp-macroexpand-all' to get more info."
   `(ppp-sexp-to-string (macroexpand-all ',form) ,notailnewline))
 
 ;;;###autoload
-(defun ppp-list-to-string (form &optional _notailnewline)
+(defun ppp-list-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for list.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-list' to get more info."
   (with-ppp--working-buffer form
-    (when (and form (listp form))
-      (forward-char)
-      (ignore-errors
-        (while t (forward-sexp) (newline)))
-      (delete-char -1))))
+    (save-excursion
+      (and (ppp--down-list) (ppp--add-newline-per-sexp 1)))
+    (indent-sexp)
+    (unless notailnewline
+      (goto-char (point-max)) (ppp--insert "\n"))))
 
 ;;;###autoload
-(defun ppp-plist-to-string (form &optional _notailnewline)
+(defun ppp-plist-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for plist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
-  (with-ppp--working-buffer form
-    (when (and form (listp form))
-      (forward-char)
-      (ignore-errors
-        (while t (forward-sexp 2) (newline)))
-      (delete-char -1))))
+  (if (not (listp form))
+      (prin1-to-string form)
+    (with-ppp--working-buffer `(ppp-dummy ,@form) ; add dummy symbol for indent
+      (save-excursion
+        (ppp--down-list) (ppp--forward-sexp) (ppp--insert "\n")
+        (ppp--add-newline-per-sexp 2))
+      (indent-sexp)
+      (delete-region                    ; remove dummy symbol
+       (progn (ppp--down-list) (point))
+       (progn (ppp--forward-sexp) (ppp--skip-spaces-forward) (point)))
+      (unless notailnewline
+        (goto-char (point-max)) (ppp--insert "\n")))))
 
 ;;;###autoload
-(defun ppp-alist-to-string (form &optional _notailnewline)
+(defun ppp-alist-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for alist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
-  (ppp-plist-to-string (ppp-alist-to-plist form)))
+  (ppp-plist-to-string (ppp-alist-to-plist form notailnewline)))
 
 ;;;###autoload
 (defun ppp-symbol-function-to-string (symbol &optional notailnewline)
@@ -505,7 +580,7 @@ Note:
                   (concat
                    ,(and break "\n")
                    ,(format (cadr (assq level warning-levels))
-                           (format warning-type-format pkg))
+                            (format warning-type-format pkg))
                    ;; (seq-let (caller caller-args) (ppp--get-caller 2)
                    ;;   (prin1-to-string caller)
                    ;;   " "

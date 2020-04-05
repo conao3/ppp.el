@@ -47,46 +47,211 @@ Example:
 
 ;;; test definitions
 
-(cort-deftest-with-equal ppp/ppp-sexp
-  '(
-    ((ppp-sexp-to-string '(a b c))
-     "\
-(a b c)
-")
+(setq-default indent-tabs-mode nil)
 
-    ((ppp-sexp-to-string '(a (some-function a b) c))
+(cort-deftest-with-equal ppp/ppp-sexp--simple
+  '(
+    ((ppp-sexp-to-string
+      '(a b c)
+      'nonewline)
+     "\
+(a b c)")
+
+    ((ppp-sexp-to-string
+      '(a
+        (some-function a b)
+        c)
+      'nonewline)
      "\
 (a
  (some-function a b)
- c)
-")
+ c)")
 
-    ((ppp-sexp-to-string '(a (when a (some-function a b)) c))
+    ((ppp-sexp-to-string
+      'closure
+      'nonewline)      ; issue#38
+     "\
+closure")))
+
+(cort-deftest-with-equal ppp/ppp-sexp--indent
+  '(
+    ((ppp-sexp-to-string
+      '(a
+        (some-function
+         (some-function a b)
+         (some-function a b))
+        c)
+      'nonewline)
      "\
 (a
- (when a
+ (some-function
+  (some-function a b)
+  (some-function a b))
+ c)")
+
+    ((ppp-sexp-to-string
+      '(a
+        (when (some-function a b)
+          (some-function a b))
+        c)
+      'nonewline)
+     "\
+(a
+ (when (some-function a b)
    (some-function a b))
- c)
-")
+ c)")
 
-    ((ppp-sexp-to-string '(lambda (a b) (message a b)))
+    ((ppp-sexp-to-string
+      '(while (and
+               (or
+                (null limit)
+                (< count limit))
+               (setq tem (file-symlink-p newname)))
+         (setq tem (substring tem 3)))
+      'nonewline)
      "\
-(lambda (a b)
-  (message a b))
-")))
+(while (and
+        (or
+         (null limit)
+         (< count limit))
+        (setq tem (file-symlink-p newname)))
+  (setq tem (substring tem 3)))")
 
-(cort-deftest-with-equal ppp/misc
-  '(((ppp-sexp-to-string '(defcustom dummy-variable))
+    ((ppp-sexp-to-string
+      '(if (functionp indent)
+           indent
+         (symbol-function indent))
+      'nonewline)
      "\
-(defcustom dummy-variable)
-")
+(if (functionp indent)
+    indent
+  (symbol-function indent))")
 
-    ((ppp-sexp-to-string 'closure)      ;issue#38
+    ((ppp-sexp-to-string
+      '(save-match-data
+         (if (and
+              (null limit)
+              (= count 100))
+             (error "Apparent cycle of symbolic links for %s" filename)))
+      'nonewline)
      "\
-closure
-")))
+(save-match-data
+  (if (and
+       (null limit)
+       (= count 100))
+      (error \"Apparent cycle of symbolic links for %s\" filename)))")))
 
-;; (provide 'p-test)
+(cort-deftest-with-equal ppp/ppp-sexp--let
+  '(
+    ((ppp-sexp-to-string
+      '(let ((name (copy-sequence filename))
+             (start 0))
+         (list name start))
+      'nonewline)
+     "\
+(let ((name (copy-sequence filename))
+      (start 0))
+  (list name start))")
+
+    ((ppp-sexp-to-string
+      '(let ((name (copy-sequence filename))
+             (start (when (some-function a b)
+                      (some-function a b))))
+         (list name start))
+      'nonewline)
+     "\
+(let ((name (copy-sequence filename))
+      (start (when (some-function a b)
+               (some-function a b))))
+  (list name start))")
+
+    ((ppp-sexp-to-string
+      '(let* (backupname
+              targets
+              (old-versions (and targets
+                                 (booleanp delete-old-versions)
+                                 targets))
+              old-versions
+              modes)
+         setmodes)
+      'nonewline)
+     "(let* (backupname
+       targets
+       (old-versions (and targets
+                          (booleanp delete-old-versions)
+                          targets))
+       old-versions
+       modes)
+  setmodes)")))
+
+(cort-deftest-with-equal ppp/ppp-sexp--setq
+  '(
+    ((ppp-sexp-to-string
+      '(setq tem (substring tem 3)
+             newname (expand-file-name newname)
+             newname (file-chase-links
+                      (directory-file-name
+                       (file-name-directory newname)))
+             newname (file-name-directory newname))
+      'nonewline)
+     "\
+(setq tem (substring tem 3)
+      newname (expand-file-name newname)
+      newname (file-chase-links
+               (directory-file-name
+                (file-name-directory newname)))
+      newname (file-name-directory newname))")))
+
+(cort-deftest-with-equal ppp/ppp-list
+  '(
+    ((ppp-list-to-string
+      '((0 . (unwind-protect progn))
+        (1 . (lambda if condition-case not null))
+        (2 . (closure defcustom))
+        (3 . (macro))
+        (ppp--add-newline-for-let . (let let*))
+        (ppp--add-newline-for-setq . (setq setf)))
+      'nonewline)
+     "\
+((0 unwind-protect progn)
+ (1 lambda if condition-case not null)
+ (2 closure defcustom)
+ (3 macro)
+ (ppp--add-newline-for-let let let*)
+ (ppp--add-newline-for-setq setq setf))")
+
+    ((ppp-list-to-string
+      '((0 . (unwind-protect progn))
+        (1 . ((lambda) if condition-case not null))
+        (2 . (closure defcustom))
+        (3 . (macro))
+        (ppp--add-newline-for-let . (let let*))
+        (ppp--add-newline-for-setq . (setq setf)))
+      'nonewline)
+     "\
+((0 unwind-protect progn)
+ (1
+  (lambda)
+  if condition-case
+  not null)
+ (2 closure defcustom)
+ (3 macro)
+ (ppp--add-newline-for-let let let*)
+ (ppp--add-newline-for-setq setq setf))")))
+
+(cort-deftest-with-equal ppp/ppp-plist
+  '(
+    ((ppp-plist-to-string
+      '(:last-capture "org-capture-last-stored"
+                      :last-refile "org-refile-last-stored"
+                      :last-capture-marker "org-capture-last-stored-marker")
+      t)
+     "\
+(:last-capture \"org-capture-last-stored\"
+ :last-refile \"org-refile-last-stored\"
+ :last-capture-marker \"org-capture-last-stored-marker\")")))
+
+;; (provide 'ppp-test)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

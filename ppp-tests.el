@@ -66,36 +66,38 @@ Example:
  c)")
 
     ((ppp-sexp-to-string
+      'closure
+      'nonewline)      ; issue#38
+     "\
+closure")))
+
+(cort-deftest-with-equal ppp/ppp-sexp--when
+  '(
+    ((ppp-sexp-to-string
       '(a
-        (when a
+        (some-function
+         (some-function a b)
+         (some-function a b))
+        c)
+      'nonewline)
+     "\
+(a
+ (some-function
+  (some-function a b)
+  (some-function a b))
+ c)")
+
+    ((ppp-sexp-to-string
+      '(a
+        (when (some-function a b)
           (some-function a b))
         c)
       'nonewline)
      "\
 (a
- (when a
+ (when (some-function a b)
    (some-function a b))
- c)")
-
-    ((ppp-sexp-to-string
-      '(lambda (a b)
-         (message a b))
-      'nonewline)
-     "\
-(lambda (a b)
-  (message a b))")
-
-    ((ppp-sexp-to-string
-      '(defcustom dummy-variable)
-      'nonewline)
-     "\
-(defcustom dummy-variable)")
-
-    ((ppp-sexp-to-string
-      'closure
-      'nonewline)      ; issue#38
-     "\
-closure")))
+ c)")))
 
 ;; (provide 'p-test)
 

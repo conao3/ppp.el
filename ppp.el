@@ -258,12 +258,16 @@ Return t if scan succeeded and return nil if scan failed."
   "Add newline for `let'."
   (and
    (ppp--down-list) (ppp-debug-ov-move 4)
+   (progn (save-excursion (ppp--add-newline-per-sexp 1)) t)
    (while (and
            (ppp--down-list) (ppp-debug-ov-move 4)
            (ppp--forward-sexp) (ppp-debug-ov-move 4)
-           (ppp--add-newline-this-sexp)
-           (ppp--up-list) (ppp-debug-ov-move 4)
-           (progn (unless (eq ?\) (char-after)) (ppp--insert "\n")) t)))))
+           (prog1 t
+             (delete-region
+              (point)
+              (progn (ppp--skip-spaces-forward) (point))))
+           (ppp--insert " ")
+           (ppp--up-list) (ppp-debug-ov-move 4)))))
 
 (defun ppp--add-newline-for-setq ()
   "Add newline for `let'."

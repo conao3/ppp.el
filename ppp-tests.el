@@ -163,7 +163,26 @@ closure")))
 (let ((name (copy-sequence filename))
       (start (when (some-function a b)
                (some-function a b))))
-  (list name start))")))
+  (list name start))")
+
+    ((ppp-sexp-to-string
+      '(let* (backupname
+              targets
+              (old-versions (and targets
+                                 (booleanp delete-old-versions)
+                                 targets))
+              old-versions
+              modes)
+         setmodes)
+      'nonewline)
+     "(let* (backupname
+       targets
+       (old-versions (and targets
+                          (booleanp delete-old-versions)
+                          targets))
+       old-versions
+       modes)
+  setmodes)")))
 
 (cort-deftest-with-equal ppp/ppp-sexp--setq
   '(

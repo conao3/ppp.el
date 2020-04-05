@@ -397,11 +397,18 @@ See `ppp-list' to get more info."
   "Output the pretty-printed representation of FORM suitable for plist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
-  (with-ppp--working-buffer form
-    (save-excursion
-      (and (ppp--down-list) (ppp--add-newline-per-sexp 2)))
-    (unless notailnewline
-      (goto-char (point-max)) (ppp--insert "\n"))))
+  (if (not (listp form))
+      (prin1-to-string form)
+    (with-ppp--working-buffer `(ppp-dummy ,@form) ; add dummy symbol for indent
+      (save-excursion
+        (ppp--down-list) (ppp--forward-sexp) (ppp--insert "\n")
+        (ppp--add-newline-per-sexp 2))
+      (indent-sexp)
+      (delete-region                    ; remove dummy symbol
+       (progn (ppp--down-list) (point))
+       (progn (ppp--forward-sexp) (ppp--skip-spaces-forward) (point)))
+      (unless notailnewline
+        (goto-char (point-max)) (ppp--insert "\n")))))
 
 ;;;###autoload
 (defun ppp-alist-to-string (form &optional _notailnewline)

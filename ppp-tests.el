@@ -239,6 +239,18 @@ closure")))
  (ppp--add-newline-for-let let let*)
  (ppp--add-newline-for-setq setq setf))")))
 
+(cort-deftest-with-equal ppp/ppp-plist
+  '(
+    ((ppp-plist-to-string
+      '(:last-capture "org-capture-last-stored"
+                      :last-refile "org-refile-last-stored"
+                      :last-capture-marker "org-capture-last-stored-marker")
+      t)
+     "\
+(:last-capture \"org-capture-last-stored\"
+ :last-refile \"org-refile-last-stored\"
+ :last-capture-marker \"org-capture-last-stored-marker\")")))
+
 ;; (provide 'ppp-test)
 
 ;; Local Variables:

@@ -39,7 +39,7 @@
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
 
 (defcustom ppp-indent-spec
-  '((0 . (unwind-protect))
+  '((0 . (unwind-protect progn))
     (1 . (lambda if condition-case not null car cdr 1+ 1-
            goto-char goto-line))
     (2 . (closure defcustom))

@@ -259,7 +259,7 @@ leaf")))
 
 (cort-deftest-with-equal ppp/ppp-leaf
   '(
-    ((ppp-leaf-to-string
+    ((ppp-sexp-to-string
       '(leaf leaf
          :load-path "~/.emacs.d/elpa-archive/leaf.el/"
          :require t
@@ -283,7 +283,7 @@ leaf")))
    (some-function a b)
    (some-function a b)))")
 
-    ((ppp-leaf-to-string
+    ((ppp-sexp-to-string
       '(leaf color-moccur
          :bind (("M-s O" . moccur)
                 (:isearch-mode-map

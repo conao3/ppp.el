@@ -433,48 +433,56 @@ If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-symbol-value' to get more info."
   (ppp-sexp-to-string (symbol-value symbol) notailnewline))
 
+(defun ppp-leaf-buffer (&optional notailnewline noindent)
+  "Prettify the current buffer with printed representation of a leaf object.
+IF NOTAILNEWLINE is non-nil, add no last newline.
+If NOINDENT is non-nil, don't perform indent sexp.
+ppp version of `pp-buffer'."
+  (require 'leaf)                   ; for leaf proper indentation
+  (goto-char (point-min))
+  (ppp--debug-ov-move)
+  (and
+   (and
+    (ppp--down-list) (ppp--debug-ov-move)
+    (ppp--forward-sexp 2) (ppp--debug-ov-move)
+    (ppp--skip-spaces-forward) (ppp--debug-ov-move))
+   (let (key)
+     (while (let ((sexp (sexp-at-point)))
+              (and
+               (cond
+                ((keywordp sexp)
+                 (setq key sexp)
+                 (and
+                  (prog1 t
+                    (delete-region
+                     (point)
+                     (progn (ppp--skip-spaces-backward) (point))))
+                  (ppp--insert "\n") (ppp--debug-ov-move)
+                  (ppp--forward-sexp) (ppp--debug-ov-move)
+                  (prog1 t
+                    (when (memq sexp '(:preface :init :config))
+                      (ppp--insert "\n") (ppp--debug-ov-move)))))
+                (t
+                 (cl-case key
+                   ((:preface :init :config)
+                    (and
+                     (ppp--add-newline-after-sexp 1) (ppp--debug-ov-move)))
+                   (otherwise
+                    (and
+                     (ppp--add-newline-this-sexp) (ppp--debug-ov-move)
+                     (ppp--forward-sexp) (ppp--debug-ov-move))))))
+               (ppp--skip-spaces-forward) (ppp--debug-ov-move))))))
+  (unless notailnewline
+    (goto-char (point-max)) (ppp--insert "\n"))
+  (unless noindent (goto-char (point-min)) (indent-sexp)))
+
 ;;;###autoload
 (defun ppp-leaf-to-string (form &optional notailnewline)
   "Output the pretty-printed representation of FORM suitable for leaf.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-leaf' to get more info."
-  (require 'leaf)                       ; for leaf proper indentation
   (with-ppp--working-buffer form
-    (let (key)
-      (save-excursion
-        (and
-         (and
-          (ppp--down-list) (ppp--debug-ov-move)
-          (ppp--forward-sexp 2) (ppp--debug-ov-move)
-          (ppp--skip-spaces-forward) (ppp--debug-ov-move))
-         (while (let ((sexp (sexp-at-point)))
-                  (and
-                   (cond
-                    ((keywordp sexp)
-                     (setq key sexp)
-                     (and
-                      (prog1 t
-                        (delete-region
-                         (point)
-                         (progn (ppp--skip-spaces-backward) (point))))
-                      (ppp--insert "\n") (ppp--debug-ov-move)
-                      (ppp--forward-sexp) (ppp--debug-ov-move)
-                      (prog1 t
-                        (when (memq sexp '(:preface :init :config))
-                          (ppp--insert "\n") (ppp--debug-ov-move)))))
-                    (t
-                     (cl-case key
-                       ((:preface :init :config)
-                        (and
-                         (ppp--add-newline-after-sexp 1) (ppp--debug-ov-move)))
-                       (otherwise
-                        (and
-                         (ppp--add-newline-this-sexp) (ppp--debug-ov-move)
-                         (ppp--forward-sexp) (ppp--debug-ov-move))))))
-                   (ppp--skip-spaces-forward) (ppp--debug-ov-move))))))
-      (indent-sexp)
-      (unless notailnewline
-        (goto-char (point-max)) (ppp--insert "\n")))))
+    (ppp-leaf-buffer notailnewline)))
 
 
 ;;; Princ functions

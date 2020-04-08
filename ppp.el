@@ -339,7 +339,7 @@ If NOINDENT is non-nil, don't perform indent sexp.
 ppp version of `pp-buffer'."
   (interactive)
   (goto-char (point-min)) (ppp--debug-ov-make)
-  (let ((newlinesym (format "ppp-%s%s%s" (gensym) (gensym) (gensym))))
+  (let ((newlinesym (format "ppp-%s" (random))))
     (while (not (eobp))
       (let* ((op (sexp-at-point))
              (indent (ppp--get-indent op)))

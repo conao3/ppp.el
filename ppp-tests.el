@@ -295,7 +295,34 @@ leaf")))
   :bind ((\"M-s O\" . moccur)
          (:isearch-mode-map
           (\"M-o\" . isearch-moccur)
-          (\"M-O\" . isearch-moccur-all))))")))
+          (\"M-O\" . isearch-moccur-all))))")
+
+    ((ppp-sexp-to-string
+      '(progn
+         (leaf color-moccur
+           :bind (("M-s O" . moccur)
+                  (:isearch-mode-map
+                   ("M-o" . isearch-moccur)
+                   ("M-O" . isearch-moccur-all))))
+         (leaf color-moccur
+           :bind (("M-s O" . moccur)
+                  (:isearch-mode-map
+                   ("M-o" . isearch-moccur)
+                   ("M-O" . isearch-moccur-all)))))
+      'nonewline)
+     "\
+(progn
+  (leaf color-moccur
+    :bind ((\"M-s O\" . moccur)
+           (:isearch-mode-map
+            (\"M-o\" . isearch-moccur)
+            (\"M-O\" . isearch-moccur-all))))
+
+  (leaf color-moccur
+    :bind ((\"M-s O\" . moccur)
+           (:isearch-mode-map
+            (\"M-o\" . isearch-moccur)
+            (\"M-O\" . isearch-moccur-all)))))")))
 
 ;; (provide 'ppp-test)
 

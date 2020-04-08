@@ -61,6 +61,14 @@ Duplicate LEVEL is accepted."
   :group 'ppp
   :type 'sexp)
 
+(defcustom ppp-add-newline-after-op-list
+  (leaf-list
+   leaf use-package
+   progn prog1 prog2 defun defcustom)
+  "Add newline after those op sexp list."
+  :group 'ppp
+  :type 'sexp)
+
 (defcustom ppp-escape-newlines t
   "Value of `print-escape-newlines' used by ppp-* functions."
   :type 'boolean
@@ -360,8 +368,22 @@ ppp version of `pp-buffer'."
          (point)
          (progn (ppp--skip-spaces-forward) (point)))
         (ppp--insert "\n") (ppp--debug-ov-move))
-       (t (goto-char (point-max)) (ppp--debug-ov-move)))))
-  (when (and notailnewline (eq ?\n (char-before))) (delete-char -1))
+       (t (goto-char (point-max)) (ppp--debug-ov-move)))
+
+      (when (memq op ppp-add-newline-after-op-list)
+        (save-excursion
+          (and (ppp--up-list)
+               (not (eq ?\) (char-after)))
+               (not (eq (point) (point-max)))
+               (ppp--insert "{{newline}}"))))))
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "{{newline}}" nil t)
+      (replace-match "" nil nil)))
+  (save-excursion
+    (goto-char (point-max))
+    (delete-region (point) (progn (ppp--skip-spaces-backward) (point)))
+    (unless notailnewline (goto-char (point-max)) (ppp--insert "\n")))
   (unless noindent (goto-char (point-min)) (indent-sexp)))
 
 (defun ppp-pp-buffer ()

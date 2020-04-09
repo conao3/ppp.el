@@ -74,6 +74,16 @@ Duplicate LEVEL is accepted."
   :type 'boolean
   :group 'ppp)
 
+(defcustom ppp-tail-newline t
+  "Whether add newline after `ppp' output or not."
+  :type 'boolean
+  :group 'ppp)
+
+(defcustom ppp-indent t
+  "Whether indent `ppp' output or not."
+  :type 'boolean
+  :group 'ppp)
+
 (defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
   "Buffer name for `ppp-debug'."
   :group 'ppp
@@ -244,10 +254,12 @@ With ARG, do this that many times.  see `up-list'."
   (save-restriction
     (save-excursion
       (let ((beg (point))
-            (end (progn (and (ppp--forward-sexp) (point)))))
+            (end (progn (and (ppp--forward-sexp) (point))))
+            (ppp-tail-newline nil)
+            (ppp-indent nil))
         (when (and beg end (< beg end))
           (narrow-to-region beg end)
-          (ppp-buffer 'nonewline 'noindent)
+          (ppp-buffer)
           t)))))
 
 (defun ppp--add-newline-after-sexp (nsexp)
@@ -332,7 +344,7 @@ Return t if scan succeeded and return nil if scan failed."
      (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload
-(defun ppp-buffer (&optional notailnewline noindent)
+(defun ppp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object.
 IF NOTAILNEWLINE is non-nil, add no last newline.
 If NOINDENT is non-nil, don't perform indent sexp.
@@ -383,8 +395,8 @@ ppp version of `pp-buffer'."
     (save-excursion
       (goto-char (point-max))
       (delete-region (point) (progn (ppp--skip-spaces-backward) (point)))
-      (unless notailnewline (goto-char (point-max)) (ppp--insert "\n")))
-    (unless noindent (goto-char (point-min)) (indent-sexp))))
+      (when ppp-tail-newline (goto-char (point-max)) (ppp--insert "\n")))
+    (when ppp-indent (goto-char (point-min)) (indent-sexp))))
 
 (defun ppp-pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object.
@@ -417,30 +429,30 @@ ppp version of `pp-buffer'."
 ;;; String functions
 
 ;;;###autoload
-(defun ppp-sexp-to-string (form &optional notailnewline)
+(defun ppp-sexp-to-string (form)
   "Output the pretty-printed representation of FORM suitable for objects.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-sexp' to get more info."
   (with-ppp--working-buffer form
-    (ppp-buffer notailnewline)))
+    (ppp-buffer)))
 
 ;;;###autoload
-(defmacro ppp-macroexpand-to-string (form &optional notailnewline)
+(defmacro ppp-macroexpand-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-macroexpand' to get more info."
-  `(ppp-sexp-to-string (macroexpand-1 ',form) ,notailnewline))
+  `(ppp-sexp-to-string (macroexpand-1 ',form)))
 
 ;;;###autoload
-(defmacro ppp-macroexpand-all-to-string (form &optional notailnewline)
+(defmacro ppp-macroexpand-all-to-string (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-macroexpand-all' to get more info."
-  `(ppp-sexp-to-string (macroexpand-all ',form) ,notailnewline))
+  `(ppp-sexp-to-string (macroexpand-all ',form)))
 
 ;;;###autoload
-(defun ppp-list-to-string (form &optional notailnewline)
+(defun ppp-list-to-string (form)
   "Output the pretty-printed representation of FORM suitable for list.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-list' to get more info."
@@ -448,11 +460,11 @@ See `ppp-list' to get more info."
     (save-excursion
       (and (ppp--down-list) (ppp--add-newline-per-sexp 1)))
     (indent-sexp)
-    (unless notailnewline
+    (when ppp-tail-newline
       (goto-char (point-max)) (ppp--insert "\n"))))
 
 ;;;###autoload
-(defun ppp-plist-to-string (form &optional notailnewline)
+(defun ppp-plist-to-string (form)
   "Output the pretty-printed representation of FORM suitable for plist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
@@ -466,89 +478,89 @@ See `ppp-plist' to get more info."
       (delete-region                    ; remove dummy symbol
        (progn (ppp--down-list) (point))
        (progn (ppp--forward-sexp) (ppp--skip-spaces-forward) (point)))
-      (unless notailnewline
+      (when ppp-tail-newline
         (goto-char (point-max)) (ppp--insert "\n")))))
 
 ;;;###autoload
-(defun ppp-alist-to-string (form &optional notailnewline)
+(defun ppp-alist-to-string (form)
   "Output the pretty-printed representation of FORM suitable for alist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-plist' to get more info."
-  (ppp-plist-to-string (ppp-alist-to-plist form notailnewline)))
+  (ppp-plist-to-string (ppp-alist-to-plist form)))
 
 ;;;###autoload
-(defun ppp-symbol-function-to-string (symbol &optional notailnewline)
+(defun ppp-symbol-function-to-string (symbol)
   "Output the pretty-printed representation of SYMBOL `symbol-function'.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-symbol-funciton' to get more info."
-  (ppp-sexp-to-string (symbol-function symbol) notailnewline))
+  (ppp-sexp-to-string (symbol-function symbol)))
 
 ;;;###autoload
-(defun ppp-symbol-value-to-string (symbol &optional notailnewline)
+(defun ppp-symbol-value-to-string (symbol)
   "Output the pretty-printed representation of SYMBOL `symbol-value'.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 See `ppp-symbol-value' to get more info."
-  (ppp-sexp-to-string (symbol-value symbol) notailnewline))
+  (ppp-sexp-to-string (symbol-value symbol)))
 
 
 ;;; Princ functions
 
 ;;;###autoload
-(defun ppp-sexp (form &optional notailnewline)
+(defun ppp-sexp (form)
   "Output the pretty-printed representation of FORM suitable for objects.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
-    (princ (ppp-sexp-to-string form notailnewline))))
+    (princ (ppp-sexp-to-string form))))
 
 ;;;###autoload
-(defmacro ppp-macroexpand (form &optional notailnewline)
+(defmacro ppp-macroexpand (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   `(prog1 nil
-     (princ (ppp-macroexpand-to-string ,form ,notailnewline))))
+     (princ (ppp-macroexpand-to-string ,form))))
 
 ;;;###autoload
-(defmacro ppp-macroexpand-all (form &optional notailnewline)
+(defmacro ppp-macroexpand-all (form)
   "Output the pretty-printed representation of FORM suitable for macro.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline.
 Unlike `ppp-macroexpand', use `macroexpand-all' instead of `macroexpand-1'."
   `(prog1 nil
-     (princ (ppp-macroexpand-all-to-string ,form ,notailnewline))))
+     (princ (ppp-macroexpand-all-to-string ,form))))
 
 ;;;###autoload
-(defun ppp-list (form &optional _notailnewline)
+(defun ppp-list (form)
   "Output the pretty-printed representation of FORM suitable for list.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
     (princ (concat (ppp-list-to-string form) "\n"))))
 
 ;;;###autoload
-(defun ppp-plist (form &optional _notailnewline)
+(defun ppp-plist (form)
   "Output the pretty-printed representation of FORM suitable for plist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
     (princ (concat (ppp-plist-to-string form) "\n"))))
 
 ;;;###autoload
-(defun ppp-alist (form &optional _notailnewline)
+(defun ppp-alist (form)
   "Output the pretty-printed representation of FORM suitable for alist.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
     (princ (concat (ppp-alist-to-string form)))))
 
 ;;;###autoload
-(defun ppp-symbol-function (symbol &optional notailnewline)
+(defun ppp-symbol-function (symbol)
   "Output `symbol-function' for SYMBOL.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
-    (princ (ppp-sexp-to-string symbol notailnewline))))
+    (princ (ppp-sexp-to-string symbol))))
 
 ;;;###autoload
-(defun ppp-symbol-value (symbol &optional notailnewline)
+(defun ppp-symbol-value (symbol)
   "Output `symbol-value' for SYMBOL.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
-    (princ (ppp-symbol-value-to-string symbol notailnewline))))
+    (princ (ppp-symbol-value-to-string symbol))))
 
 ;;;###autoload
 (defun ppp-alist-to-plist (alist &optional _notailnewline)

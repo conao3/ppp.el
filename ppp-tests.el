@@ -48,34 +48,31 @@ Example:
 ;;; test definitions
 
 (setq-default indent-tabs-mode nil)
+(setq ppp-tail-newline nil)
 
 (cort-deftest-with-equal ppp/ppp-sexp--simple
   '(
     ((ppp-sexp-to-string
-      '(a b c)
-      'nonewline)
+      '(a b c))
      "\
 (a b c)")
 
     ((ppp-sexp-to-string
       '(a
         (some-function a b)
-        c)
-      'nonewline)
+        c))
      "\
 (a
  (some-function a b)
  c)")
 
     ((ppp-sexp-to-string
-      'closure
-      'nonewline)                       ; issue#38
+      'closure)                       ; issue#38
      "\
 closure")
 
     ((ppp-sexp-to-string
-      'leaf
-      'nonewline)                       ; issue#79
+      'leaf)                       ; issue#79
      "\
 leaf")))
 
@@ -86,8 +83,7 @@ leaf")))
         (some-function
          (some-function a b)
          (some-function a b))
-        c)
-      'nonewline)
+        c))
      "\
 (a
  (some-function
@@ -99,8 +95,7 @@ leaf")))
       '(a
         (when (some-function a b)
           (some-function a b))
-        c)
-      'nonewline)
+        c))
      "\
 (a
  (when (some-function a b)
@@ -113,8 +108,7 @@ leaf")))
                 (null limit)
                 (< count limit))
                (setq tem (file-symlink-p newname)))
-         (setq tem (substring tem 3)))
-      'nonewline)
+         (setq tem (substring tem 3))))
      "\
 (while (and
         (or
@@ -126,8 +120,7 @@ leaf")))
     ((ppp-sexp-to-string
       '(if (functionp indent)
            indent
-         (symbol-function indent))
-      'nonewline)
+         (symbol-function indent)))
      "\
 (if (functionp indent)
     indent
@@ -138,8 +131,7 @@ leaf")))
          (if (and
               (null limit)
               (= count 100))
-             (error "Apparent cycle of symbolic links for %s" filename)))
-      'nonewline)
+             (error "Apparent cycle of symbolic links for %s" filename))))
      "\
 (save-match-data
   (if (and
@@ -152,8 +144,7 @@ leaf")))
     ((ppp-sexp-to-string
       '(let ((name (copy-sequence filename))
              (start 0))
-         (list name start))
-      'nonewline)
+         (list name start)))
      "\
 (let ((name (copy-sequence filename))
       (start 0))
@@ -163,8 +154,7 @@ leaf")))
       '(let ((name (copy-sequence filename))
              (start (when (some-function a b)
                       (some-function a b))))
-         (list name start))
-      'nonewline)
+         (list name start)))
      "\
 (let ((name (copy-sequence filename))
       (start (when (some-function a b)
@@ -179,8 +169,7 @@ leaf")))
                                  targets))
               old-versions
               modes)
-         setmodes)
-      'nonewline)
+         setmodes))
      "(let* (backupname
        targets
        (old-versions (and targets
@@ -198,8 +187,7 @@ leaf")))
              newname (file-chase-links
                       (directory-file-name
                        (file-name-directory newname)))
-             newname (file-name-directory newname))
-      'nonewline)
+             newname (file-name-directory newname)))
      "\
 (setq tem (substring tem 3)
       newname (expand-file-name newname)
@@ -216,8 +204,7 @@ leaf")))
         (2 . (closure defcustom))
         (3 . (macro))
         (ppp--add-newline-for-let . (let let*))
-        (ppp--add-newline-for-setq . (setq setf)))
-      'nonewline)
+        (ppp--add-newline-for-setq . (setq setf))))
      "\
 ((0 unwind-protect progn)
  (1 lambda if condition-case not null)
@@ -232,8 +219,7 @@ leaf")))
         (2 . (closure defcustom))
         (3 . (macro))
         (ppp--add-newline-for-let . (let let*))
-        (ppp--add-newline-for-setq . (setq setf)))
-      'nonewline)
+        (ppp--add-newline-for-setq . (setq setf))))
      "\
 ((0 unwind-protect progn)
  (1
@@ -250,8 +236,7 @@ leaf")))
     ((ppp-plist-to-string
       '(:last-capture "org-capture-last-stored"
                       :last-refile "org-refile-last-stored"
-                      :last-capture-marker "org-capture-last-stored-marker")
-      t)
+                      :last-capture-marker "org-capture-last-stored-marker"))
      "\
 (:last-capture \"org-capture-last-stored\"
  :last-refile \"org-refile-last-stored\"
@@ -269,8 +254,7 @@ leaf")))
            (some-function a b))
          (some-function
           (some-function a b)
-          (some-function a b)))
-      'nonewline)
+          (some-function a b))))
      "\
 (leaf leaf
   :load-path \"~/.emacs.d/elpa-archive/leaf.el/\"
@@ -288,8 +272,7 @@ leaf")))
          :bind (("M-s O" . moccur)
                 (:isearch-mode-map
                  ("M-o" . isearch-moccur)
-                 ("M-O" . isearch-moccur-all))))
-      'nonewline)
+                 ("M-O" . isearch-moccur-all)))))
      "\
 (leaf color-moccur
   :bind ((\"M-s O\" . moccur)
@@ -308,8 +291,7 @@ leaf")))
            :bind (("M-s O" . moccur)
                   (:isearch-mode-map
                    ("M-o" . isearch-moccur)
-                   ("M-O" . isearch-moccur-all)))))
-      'nonewline)
+                   ("M-O" . isearch-moccur-all))))))
      "\
 (progn
   (leaf color-moccur

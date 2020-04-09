@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.1.5
+;; Version: 2.1.6
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el

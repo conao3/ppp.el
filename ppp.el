@@ -74,16 +74,6 @@ Duplicate LEVEL is accepted."
   :type 'boolean
   :group 'ppp)
 
-(defcustom ppp-tail-newline t
-  "Whether add newline after `ppp' output or not."
-  :type 'boolean
-  :group 'ppp)
-
-(defcustom ppp-indent t
-  "Whether indent `ppp' output or not."
-  :type 'boolean
-  :group 'ppp)
-
 (defcustom ppp-debug-buffer-template "*PPP Debug buffer - %s*"
   "Buffer name for `ppp-debug'."
   :group 'ppp
@@ -96,6 +86,12 @@ The value should be either :debug, :warning, :error, or :emergency.
 The value its key is t, is default minimum-warning-level value."
   :group 'ppp
   :type 'sexp)
+
+;; If you want to change those internal variables, please use `let'.
+(defvar ppp-tail-newline t
+  "Whether add newline after `ppp' output or not.")
+(defvar ppp-indent t
+  "Whether indent `ppp' output or not.")
 
 
 ;;; Debug

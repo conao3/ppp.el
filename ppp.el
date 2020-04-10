@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.1.8
+;; Version: 2.1.9
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -418,6 +418,7 @@ ppp version of `pp-buffer'."
         (save-excursion
           (and (ppp--up-list)
                (not (eq ?\) (char-after)))
+               (skip-chars-forward "\n")
                (not (eobp))
                (ppp--insert "\n")))))
      ((and (ppp--up-list) (ppp--debug-ov-move))

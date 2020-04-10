@@ -334,6 +334,33 @@ leaf")))
             (\"M-o\" . isearch-moccur)
             (\"M-O\" . isearch-moccur-all)))))")))
 
+(cort-deftest-with-equal ppp/ppp-leaf
+  '(
+    ((let ((ppp-tail-newline t))
+       (ppp-sexp-to-string
+        '(leaf leaf
+           :load-path "~/.emacs.d/elpa-archive/leaf.el/"
+           :require t
+           :config
+           (leaf-init)
+           (when (some-function a b)
+             (some-function a b))
+           (some-function
+            (some-function a b)
+            (some-function a b)))))
+     "\
+(leaf leaf
+  :load-path \"~/.emacs.d/elpa-archive/leaf.el/\"
+  :require t
+  :config
+  (leaf-init)
+  (when (some-function a b)
+    (some-function a b))
+  (some-function
+   (some-function a b)
+   (some-function a b)))
+")))
+
 ;; (provide 'ppp-test)
 
 ;; Local Variables:

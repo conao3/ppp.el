@@ -418,6 +418,7 @@ ppp version of `pp-buffer'."
         (save-excursion
           (and (ppp--up-list)
                (not (eq ?\) (char-after)))
+               (skip-chars-forward "\n")
                (not (eobp))
                (ppp--insert "\n")))))
      ((and (ppp--up-list) (ppp--debug-ov-move))

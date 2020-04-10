@@ -250,6 +250,7 @@ With ARG, do this that many times.  see `up-list'."
     (save-excursion
       (let ((beg (point))
             (end (progn (and (ppp--forward-sexp) (point))))
+            (ppp-optional-newline nil)
             (ppp-tail-newline nil)
             (ppp-indent nil))
         (when (and beg end (< beg end))
@@ -378,6 +379,7 @@ ppp version of `pp-buffer'."
   (goto-char (point-max))
   (delete-region (point) (progn (ppp--skip-spaces-backward) (point)))
   (when ppp-tail-newline (goto-char (point-max)) (ppp--insert "\n"))
+  (when ppp-optional-newline (goto-char (point-min)) (ppp-add-newline-after-op))
   (when ppp-indent (goto-char (point-min)) (indent-sexp)))
 
 (defun ppp-pp-buffer ()
@@ -406,6 +408,21 @@ ppp version of `pp-buffer'."
      (t (goto-char (point-max)) (ppp--debug-ov-move))))
   (goto-char (point-min)) (ppp--debug-ov-move)
   (indent-sexp))
+
+(defun ppp-add-newline-after-op ()
+  "Add newline after `ppp-add-newline-after-op-list' sexp."
+  (while (not (eobp))
+    (cond
+     ((and (ppp--down-list) (ppp--debug-ov-move))
+      (when (memq (sexp-at-point) ppp-add-newline-after-op-list)
+        (save-excursion
+          (and (ppp--up-list)
+               (not (eq ?\) (char-after)))
+               (not (eobp))
+               (ppp--insert "\n")))))
+     ((and (ppp--up-list) (ppp--debug-ov-move))
+      (skip-syntax-forward ")") (ppp--debug-ov-move))
+     (t (goto-char (point-max)) (ppp--debug-ov-move)))))
 
 
 ;;; String functions

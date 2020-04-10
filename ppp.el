@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.1.9
+;; Version: 2.2.0
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -331,6 +331,8 @@ Return t if scan succeeded and return nil if scan failed."
      (lisp-mode-variables nil)
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
+           (print-length nil)
+           (print-level nil)
            (print-quoted t))
        (insert (prin1-to-string ,form)))
      (goto-char (point-min))

@@ -99,9 +99,6 @@ The value its key is t, is default minimum-warning-level value."
 (defvar ppp-debug nil
   "If non-nil, show debug overlay.")
 
-(defvar-local ppp-buffer-using nil
-  "If non-nil, curerntly using *ppp-debug* buffer.")
-
 (defvar-local ppp-debug-ovs (make-list 5 nil)
   "Debug overlay.")
 

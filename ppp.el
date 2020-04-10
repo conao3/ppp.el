@@ -331,6 +331,8 @@ Return t if scan succeeded and return nil if scan failed."
      (lisp-mode-variables nil)
      (set-syntax-table emacs-lisp-mode-syntax-table)
      (let ((print-escape-newlines ppp-escape-newlines)
+           (print-length nil)
+           (print-level nil)
            (print-quoted t))
        (insert (prin1-to-string ,form)))
      (goto-char (point-min))

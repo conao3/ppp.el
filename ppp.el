@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.2.1
+;; Version: 2.2.2
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -309,11 +309,11 @@ Return t if scan succeeded and return nil if scan failed."
                   (ppp--insert "\n") (ppp--debug-ov-move)
                   (ppp--forward-sexp) (ppp--debug-ov-move)
                   (prog1 t
-                    (when (memq sexp '(:preface :init :config))
+                    (when (memq sexp '(:preface :init :config :mode-hook))
                       (ppp--insert "\n") (ppp--debug-ov-move)))))
                 (t
                  (cl-case key
-                   ((:preface :init :config)
+                   ((:preface :init :config :mode-hook)
                     (and
                      (ppp--add-newline-after-sexp 1) (ppp--debug-ov-move)))
                    (otherwise

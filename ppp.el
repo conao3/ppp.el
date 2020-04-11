@@ -64,7 +64,9 @@ Duplicate LEVEL is accepted."
 (defcustom ppp-add-newline-after-op-list
   (leaf-list
    leaf use-package
-   progn prog1 prog2 defun defcustom)
+   progn prog1 prog2 defun defcustom cl-defun
+   eval-when-compile eval-and-compile cl-eval-when
+   eval-after-load with-eval-after-load)
   "Add newline after those op sexp list."
   :group 'ppp
   :type 'sexp)

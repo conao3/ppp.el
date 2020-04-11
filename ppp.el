@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -64,7 +64,9 @@ Duplicate LEVEL is accepted."
 (defcustom ppp-add-newline-after-op-list
   (leaf-list
    leaf use-package
-   progn prog1 prog2 defun defcustom)
+   progn prog1 prog2 defun defcustom cl-defun
+   eval-when-compile eval-and-compile cl-eval-when
+   eval-after-load with-eval-after-load)
   "Add newline after those op sexp list."
   :group 'ppp
   :type 'sexp)

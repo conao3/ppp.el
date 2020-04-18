@@ -557,7 +557,7 @@ If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   "Output `symbol-function' for SYMBOL.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
-    (princ (ppp-sexp-to-string symbol))))
+    (princ (ppp-symbol-function-to-string symbol))))
 
 ;;;###autoload
 (defun ppp-symbol-value (symbol)

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.2.2
+;; Version: 2.2.3
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -557,7 +557,7 @@ If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   "Output `symbol-function' for SYMBOL.
 If NOTAILNEWLINE is non-nil, add no newline at tail newline."
   (prog1 nil
-    (princ (ppp-sexp-to-string symbol))))
+    (princ (ppp-symbol-function-to-string symbol))))
 
 ;;;###autoload
 (defun ppp-symbol-value (symbol)

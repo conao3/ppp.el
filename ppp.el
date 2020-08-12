@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; Version: 2.2.3
+;; Version: 2.2.4
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
 ;; URL: https://github.com/conao3/ppp.el
@@ -351,35 +351,38 @@ If NOINDENT is non-nil, don't perform indent sexp.
 ppp version of `pp-buffer'."
   (interactive)
   (goto-char (point-min)) (ppp--debug-ov-make)
-  (while (not (eobp))
-    (let* ((op (sexp-at-point))
-           (indent (ppp--get-indent op)))
-      (cond
-       ((or (functionp indent)
-            (and (symbolp indent) (not (memq indent '(nil defun)))))
-        (and
-         (ppp--forward-sexp) (ppp--debug-ov-move)
-         (funcall (if (functionp indent) indent (symbol-function indent)))))
-       ((integerp indent)
-        (and
-         (ppp--forward-sexp) (ppp--debug-ov-move)
-         (ppp--add-newline-after-sexp indent)))
-       ((and (ppp--down-list) (ppp--debug-ov-move))
-        (save-excursion
-          (backward-char 1) (ppp--debug-ov-move 1)
-          (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
-          (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
-            (delete-region
-             (point)
-             (progn (ppp--skip-spaces-backward) (point)))
-            (ppp--insert "\n") (ppp--debug-ov-move 1))))
-       ((and (ppp--up-list) (ppp--debug-ov-move))
-        (skip-syntax-forward ")") (ppp--debug-ov-move)
-        (delete-region
-         (point)
-         (progn (ppp--skip-spaces-forward) (point)))
-        (ppp--insert "\n") (ppp--debug-ov-move))
-       (t (goto-char (point-max)) (ppp--debug-ov-move)))))
+  (let ((ptr -1))
+    (while (not (eobp))
+      (let* ((op (sexp-at-point))
+             (indent (ppp--get-indent op)))
+        (cond
+         ((or (and (functionp indent) (not (= ptr (point))))
+              (and (symbolp indent) (not (memq indent '(nil defun))) (not (= ptr (point)))))
+          (and
+           (ppp--forward-sexp) (ppp--debug-ov-move)
+           (funcall (if (functionp indent) indent (symbol-function indent))))
+          (setq ptr (point)))
+         ((and (integerp indent) (not (= ptr (point))))
+          (and
+           (ppp--forward-sexp) (ppp--debug-ov-move)
+           (ppp--add-newline-after-sexp indent))
+          (setq ptr (point)))
+         ((and (ppp--down-list) (ppp--debug-ov-move))
+          (save-excursion
+            (backward-char 1) (ppp--debug-ov-move 1)
+            (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
+            (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+              (delete-region
+               (point)
+               (progn (ppp--skip-spaces-backward) (point)))
+              (ppp--insert "\n") (ppp--debug-ov-move 1))))
+         ((and (ppp--up-list) (ppp--debug-ov-move))
+          (skip-syntax-forward ")") (ppp--debug-ov-move)
+          (delete-region
+           (point)
+           (progn (ppp--skip-spaces-forward) (point)))
+          (ppp--insert "\n") (ppp--debug-ov-move))
+         (t (goto-char (point-max)) (ppp--debug-ov-move))))))
   (goto-char (point-max))
   (delete-region (point) (progn (ppp--skip-spaces-backward) (point)))
   (when ppp-tail-newline (goto-char (point-max)) (ppp--insert "\n"))

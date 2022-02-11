@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(require 'cort-test)
+(require 'cort)
 (require 'ppp)
 
 (defmacro cort-deftest-with-equal (name form)

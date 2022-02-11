@@ -5,7 +5,7 @@
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; Version: 2.2.4
 ;; Keywords: tools
-;; Package-Requires: ((emacs "25.1") (leaf "4.1.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/conao3/ppp.el
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,12 @@
 (require 'warnings)
 (require 'seq)
 (require 'cl-lib)
-(require 'leaf)              ; leaf proper indentation, leaf-list
+
+
+;;; Initialize indent width of leaf and use-package
+(put 'leaf 'lisp-indent-function 'defun)
+(put 'use-package 'lisp-indent-function 'defun)
+
 
 (defgroup ppp nil
   "Extended pretty printer for Emacs Lisp."
@@ -62,11 +67,11 @@ Duplicate LEVEL is accepted."
   :type 'sexp)
 
 (defcustom ppp-add-newline-after-op-list
-  (leaf-list
-   leaf use-package
-   progn prog1 prog2 defun defcustom cl-defun
-   eval-when-compile eval-and-compile cl-eval-when
-   eval-after-load with-eval-after-load)
+  (list
+   'leaf 'use-package
+   'progn 'prog1 'prog2 'defun 'defcustom 'cl-defun
+   'eval-when-compile 'eval-and-compile 'cl-eval-when
+   'eval-after-load 'with-eval-after-load)
   "Add newline after those op sexp list."
   :group 'ppp
   :type 'sexp)

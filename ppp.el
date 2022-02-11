@@ -33,10 +33,9 @@
 (require 'cl-lib)
 
 
-;;; Initialize indent width of leaf and use-package if they have not been loaded
-(dolist (elm '(leaf use-package))
-  (unless (fboundp elm)
-    (put elm 'lisp-indent-function 'defun)))
+;;; Initialize indent width of leaf and use-package
+(put 'leaf 'lisp-indent-function 'defun)
+(put 'use-package 'lisp-indent-function 'defun)
 
 
 (defgroup ppp nil

@@ -32,20 +32,18 @@
 (require 'seq)
 (require 'cl-lib)
 
+
+;;; Initialize indent width of leaf and use-package if they have not been loaded
+(dolist (elm '(leaf use-package))
+  (unless (fboundp elm)
+    (put elm 'lisp-indent-function 'defun)))
+
+
 (defgroup ppp nil
   "Extended pretty printer for Emacs Lisp."
   :prefix "ppp-"
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
-
-(defcustom ppp-package-manager-list '(leaf use-package)
-  "Treat these as package-manager."
-  :group 'ppp
-  :type 'sexp)
-
-(dolist (elm ppp-package-manager-list)
-  (unless (fboundp elm)
-    (put elm 'lisp-indent-function 'defun)))
 
 (defcustom ppp-indent-spec
   '((0 . (unwind-protect progn))

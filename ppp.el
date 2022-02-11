@@ -38,6 +38,15 @@
   :group 'tools
   :link '(url-link :tag "Github" "https://github.com/conao3/ppp.el"))
 
+(defcustom ppp-package-manager-list '(leaf use-package)
+  "Treat these as package-manager."
+  :group 'ppp
+  :type 'sexp)
+
+(dolist (elm ppp-package-manager-list)
+  (unless (fboundp elm)
+    (put elm 'lisp-indent-function 'defun)))
+
 (defcustom ppp-indent-spec
   '((0 . (unwind-protect progn))
     (1 . (lambda if condition-case not null car cdr 1+ 1-

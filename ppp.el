@@ -402,7 +402,7 @@ ppp version of `pp-buffer'."
   (while (not (eobp))
     ;; (message "%06d" (- (point-max) (point)))
     (cond
-     ((ignore-errors (down-list 1) (ppp--debug-ov-move) t)
+     ((and (ppp--down-list) (ppp--debug-ov-move))
       (save-excursion
         (backward-char 1) (ppp--debug-ov-move 1)
         (skip-chars-backward "'`#^") (ppp--debug-ov-move 1)
@@ -411,7 +411,7 @@ ppp version of `pp-buffer'."
            (point)
            (progn (ppp--skip-spaces-backward) (point)))
           (insert "\n") (ppp--debug-ov-move 1))))
-     ((ignore-errors (up-list 1) (ppp--debug-ov-move) t)
+     ((and (ppp--up-list) (ppp--debug-ov-move))
       (skip-syntax-forward ")") (ppp--debug-ov-move)
       (delete-region
        (point)
@@ -660,16 +660,15 @@ Note:
                (save-excursion
                  (goto-char (point-max))
                  (insert
-                  (concat
-                   ,(and break "\n")
-                   ,(format (cadr (assq level warning-levels))
-                            (format warning-type-format pkg))
-                   ;; (seq-let (caller caller-args) (ppp--get-caller 2)
-                   ;;   (prin1-to-string caller)
-                   ;;   " "
-                   ;;   (prin1-to-string caller-args))
-                   "\n"
-                   msg))
+                  ,(if break "\f\n" "")
+                  ,(format (cadr (assq level warning-levels))
+                           (format warning-type-format pkg))
+                  ;; (seq-let (caller caller-args) (ppp--get-caller 2)
+                  ;;   (prin1-to-string caller)
+                  ;;   " "
+                  ;;   (prin1-to-string caller-args))
+                  "\n"
+                  msg)
                  (unless (and (bolp) (eolp))
                    (newline)))
                (when scroll
